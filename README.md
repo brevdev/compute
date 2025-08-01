@@ -8,7 +8,7 @@ An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerat
 
 ## Project Goals
 
-- Define a clean, minimal interface for compute primitives:
+- Define a clean, minimal interface for cloud compute primitives:
   - `Instance`
   - `Storage`
   - `FirewallRule`
