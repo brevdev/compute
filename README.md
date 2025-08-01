@@ -1,4 +1,4 @@
-# ⚡️ Brev Compute SDK (v0)
+# ⚡️ Brev Compute SDK (v1)
 
 An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerated compute** across cloud providers.
 
@@ -44,10 +44,10 @@ See [SECURITY.md](SECURITY.md) for complete security specifications and implemen
 
 ## 🚧 Status
 
-- Version: `v0` — internal interface, open-sourced
+- Version: `v1` — internal interface, open-sourced
 - Current scope: core types + interfaces + tests
 - Cloud provider implementations are internal-only for now
-- `v1` will be shaped by feedback and contributions from the community
+- `v2` will be shaped by feedback and contributions from the community
 
 ---
 
