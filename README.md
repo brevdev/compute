@@ -10,7 +10,7 @@ An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerat
 
 - Define a clean, minimal interface for compute primitives:
   - `Instance`
-  - `Disk`
+  - `Storage`
   - `FirewallRule`
   - `InstanceType`
   - `Location`
@@ -61,5 +61,5 @@ See [SECURITY.md](SECURITY.md) for complete security specifications and implemen
 
 ## 📬 Get Involved
 
-This is a foundation — we’re opening it early to **learn with the community** and shape a clean, composable `v1`. If you're building GPU compute infrastructure or tooling, we’d love your input.
+This is a foundation — we’re opening it early to **learn with the community** and shape a clean, composable `v2`. If you're building GPU compute infrastructure or tooling, we’d love your input.
 
