@@ -1,4 +1,4 @@
-# Brev Compute SDK (v1)
+# Brev Cloud SDK (v1)
 
 An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerated compute** across cloud providers.
 
@@ -63,7 +63,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 ## Documentation
 
 - **[V1 Design Notes](docs/V1_DESIGN_NOTES.md)**: Design decisions, known quirks, and AWS-inspired patterns in the v1 API
-- **[Architecture Overview](docs/ARCHITECTURE.md)**: How the Compute SDK fits into Brev's overall architecture
+- **[Architecture Overview](docs/ARCHITECTURE.md)**: How the Cloud SDK fits into Brev's overall architecture
 - **[Security Requirements](docs/SECURITY.md)**: Security specifications and implementation requirements
 
 ---
