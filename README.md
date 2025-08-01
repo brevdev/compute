@@ -20,6 +20,19 @@ An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerat
 
 ---
 
+## 🔒 Security
+
+All cloud integrations must follow our [Security Requirements](SECURITY.md), which define:
+
+- **Network Security**: Default "deny all inbound, allow all outbound" model
+- **Cluster Security**: Internal instance communication with external isolation
+- **Data Protection**: Encryption requirements for data at rest and in transit
+- **Implementation Guidelines**: Security checklists for cloud provider integrations
+
+See [SECURITY.md](SECURITY.md) for complete security specifications and implementation requirements.
+
+---
+
 ## 🧭 Scope and Philosophy
 
 - **Internal-first interface**: This repo reflects the interfaces we use within Brev — open-sourced for shared development.
