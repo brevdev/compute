@@ -4,13 +4,13 @@ This README captures the thinking behind the first version of the `compute` inte
 
 ---
 
-## 🌍 Background
+## Background
 
 The first version of this interface was designed around **AWS EC2**. At the time, AWS was the only provider we were supporting, so we built around its APIs and assumptions. The design has evolved, however you will notice AWS's momentum in the API.
 
 ---
 
-## 🧱 Known Quirks
+## Known Quirks
 
 ### Location vs SubLocation vs AZ
 - The difference between `Location`, `SubLocation`, and `AvailableAzs` is unclear.
