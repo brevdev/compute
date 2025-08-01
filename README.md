@@ -1,4 +1,4 @@
-# ⚡️ Brev Compute SDK (v1)
+# Brev Compute SDK (v1)
 
 An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerated compute** across cloud providers.
 
@@ -6,7 +6,7 @@ An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerat
 
 ---
 
-## 🎯 Project Goals
+## Project Goals
 
 - Define a clean, minimal interface for compute primitives:
   - `Instance`
@@ -20,7 +20,7 @@ An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerat
 
 ---
 
-## 🔒 Security
+## Security
 
 All cloud integrations must follow our [Security Requirements](SECURITY.md), which define:
 
@@ -33,7 +33,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 
 ---
 
-## 🧭 Scope and Philosophy
+## Scope and Philosophy
 
 - **Internal-first interface**: This repo reflects the interfaces we use within Brev — open-sourced for shared development.
 - **No provider integrations (yet)**: Initial release does not include AWS, GCP, or other cloud backends. These will follow.
@@ -41,7 +41,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 
 ---
 
-## 🚧 Status
+## Status
 
 - Version: `v1` — internal interface, open-sourced
 - Current scope: core types + interfaces + tests
@@ -50,7 +50,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 
 ---
 
-## 🤝 Who This Is For
+## Who This Is For
 
 - **NVIDIA Cloud Partners (NCPs)** looking to offer Brev-compatible GPU compute
 - **Infra teams** building cluster-aware systems or abstractions on raw compute
@@ -60,7 +60,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 - **[V1 Design Notes](docs/V1_DESIGN_NOTES.md)**: Design decisions, known quirks, and AWS-inspired patterns in the v1 API
 - **[Architecture Overview](docs/ARCHITECTURE.md)**: How the Compute SDK fits into Brev's overall architecture
@@ -68,7 +68,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 
 ---
 
-## 📬 Get Involved
+## Get Involved
 
 This is a foundation — we're opening it early to **learn with the community** and shape a clean, composable `v2`. If you're building GPU compute infrastructure or tooling, we'd love your input.
 
