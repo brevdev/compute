@@ -94,6 +94,18 @@ type Status struct {
 
 type LifecycleStatus string
 
+const (
+	LifecycleStatusPending     LifecycleStatus = "pending"
+	LifecycleStatusRunning     LifecycleStatus = "running"
+	LifecycleStatusStopping    LifecycleStatus = "stopping"
+	LifecycleStatusStopped     LifecycleStatus = "stopped"
+	LifecycleStatusSuspending  LifecycleStatus = "suspending"
+	LifecycleStatusSuspended   LifecycleStatus = "suspended"
+	LifecycleStatusTerminating LifecycleStatus = "terminating"
+	LifecycleStatusTerminated  LifecycleStatus = "terminated"
+	LifecycleStatusFailed      LifecycleStatus = "failed"
+)
+
 type CloudProviderInstanceID string
 
 type ListInstancesArgs struct {

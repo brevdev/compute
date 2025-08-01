@@ -41,13 +41,8 @@ type CloudClient interface {
 	CloudStopStartInstance
 	CloudResizeInstanceVolume
 	CloudMachineImage
-	CloudBillingUsage
 	CloudChangeInstanceType
-	CloudRetireVolume
-	CloudVPCSubnets
 	CloudModifyFirewall
-	CloudSnapshotter
-	CloudCreateMachineImage
 	CloudInstanceTags
 	UpdateHandler
 }
