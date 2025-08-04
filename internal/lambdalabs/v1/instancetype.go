@@ -9,6 +9,7 @@ import (
 )
 
 // GetInstanceTypes retrieves available instance types from Lambda Labs
+// Supported via: GET /api/v1/instance-types
 func (c *LambdaLabsClient) GetInstanceTypes(ctx context.Context, args v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
 	// TODO: Implement Lambda Labs instance type retrieval
 	// This would typically involve:
@@ -46,26 +47,7 @@ func (c *LambdaLabsClient) GetInstanceTypePollTime() time.Duration {
 }
 
 // GetLocations retrieves available locations from Lambda Labs
+// UNSUPPORTED: No location listing endpoints found in Lambda Labs API
 func (c *LambdaLabsClient) GetLocations(ctx context.Context, args v1.GetLocationsArgs) ([]v1.Location, error) {
-	// TODO: Implement Lambda Labs location retrieval
-	locations := []v1.Location{
-		{
-			Name:        "us-east-1",
-			Description: "US East (N. Virginia)",
-			Available:   true,
-			Endpoint:    "https://cloud.lambdalabs.com/api/v1",
-			Priority:    1,
-			Country:     "USA",
-		},
-		{
-			Name:        "us-west-1",
-			Description: "US West (N. California)",
-			Available:   true,
-			Endpoint:    "https://cloud.lambdalabs.com/api/v1",
-			Priority:    2,
-			Country:     "USA",
-		},
-	}
-
-	return locations, nil
+	return nil, v1.ErrNotImplemented
 }

@@ -7,8 +7,9 @@ import (
 )
 
 // LambdaLabsClient implements the CloudClient interface for Lambda Labs
+// It embeds NotImplCloudClient to handle unsupported features
 type LambdaLabsClient struct {
-	// TODO: Add Lambda Labs specific fields like API key, base URL, etc.
+	v1.NotImplCloudClient
 	apiKey  string
 	baseURL string
 }
@@ -19,7 +20,7 @@ var _ v1.CloudClient = &LambdaLabsClient{}
 func NewLambdaLabsClient(apiKey string) *LambdaLabsClient {
 	return &LambdaLabsClient{
 		apiKey:  apiKey,
-		baseURL: "https://cloud.lambdalabs.com/api/v1",
+		baseURL: "https://cloud.lambda.ai/api/v1",
 	}
 }
 
@@ -42,11 +43,11 @@ func (c *LambdaLabsClient) MakeClient(ctx context.Context, location string) (v1.
 // GetTenantID returns the tenant ID for Lambda Labs
 func (c *LambdaLabsClient) GetTenantID() (string, error) {
 	// TODO: Implement tenant ID retrieval for Lambda Labs
+	// This could be derived from the API key or account information
 	return "", nil
 }
 
 // GetReferenceID returns the reference ID for this client
 func (c *LambdaLabsClient) GetReferenceID() string {
-	// TODO: Implement reference ID generation
 	return "lambdalabs-client"
 }

@@ -33,3 +33,5 @@ const CapabilityResizeInstanceVolume Capability = "resize-instance-volume"
 const CapabilityStopStartInstance Capability = "stop-start-instance"
 
 const CapabilityMachineImage Capability = "machine-image"
+
+const CapabilityModifyFirewall Capability = "modify-firewall"

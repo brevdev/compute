@@ -7,23 +7,25 @@ import (
 )
 
 // GetCapabilities returns the capabilities of Lambda Labs
+// Based on API documentation at https://cloud.lambda.ai/api/v1/openapi.json
 func (c *LambdaLabsClient) GetCapabilities(ctx context.Context) (v1.Capabilities, error) {
-	// TODO: Implement Lambda Labs capabilities
-	// This would typically involve:
-	// 1. Determining what features Lambda Labs supports
-	// 2. Returning a Capabilities struct with the supported features
-
 	capabilities := v1.Capabilities{
-		// TODO: Fill in actual Lambda Labs capabilities
-		// Example capabilities that Lambda Labs might support:
-		// - GPU instances
-		// - Spot instances
-		// - Custom images
-		// - Firewall rules
-		// - Volume resizing
-		// - Instance type changing
-		// - Tagging
-		// - etc.
+		// SUPPORTED FEATURES (with API evidence):
+
+		// Instance Management
+		v1.CapabilityCreateInstance,          // POST /api/v1/instance-operations/launch
+		v1.CapabilityTerminateInstance,       // POST /api/v1/instance-operations/terminate
+		v1.CapabilityCreateTerminateInstance, // Combined create/terminate capability
+		v1.CapabilityRebootInstance,          // POST /api/v1/instance-operations/restart
+
+		// Firewall Management
+		v1.CapabilityModifyFirewall, // Firewall rulesets API available
+
+		// UNSUPPORTED FEATURES (no API evidence found):
+		// - v1.CapabilityStopStartInstance     // No stop/start endpoints
+		// - v1.CapabilityResizeInstanceVolume  // No volume resizing endpoints
+		// - v1.CapabilityMachineImage          // No image endpoints
+		// - v1.CapabilityTags                  // No tagging endpoints
 	}
 
 	return capabilities, nil
