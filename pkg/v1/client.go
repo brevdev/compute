@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"time"
 )
 
 type APIType string
@@ -12,25 +11,23 @@ const (
 	APITypeGlobal     APIType = "global"
 )
 
-type CloudProviderID string
+type CloudProviderID string // aws, gcp, azure, etc.
 
-type CloudUtils interface {
+type CloudAPI interface {
+	GetAPIType() APIType
 	GetCapabilities(ctx context.Context) (Capabilities, error)
 	GetCloudProviderID() CloudProviderID
 }
 
 type CloudCredential interface {
-	GetAPIType() APIType
 	MakeClient(ctx context.Context, location string) (CloudClient, error)
 	GetTenantID() (string, error)
 	GetReferenceID() string
-	CloudUtils
-	GetInstanceTypePollTime() time.Duration
+	CloudAPI
 }
 
 type CloudBase interface {
 	CloudCreateTerminateInstance
-	CloudLocation
 }
 
 type CloudClient interface {

@@ -18,7 +18,7 @@ type CloudCreateTerminateInstance interface {
 	GetInstance(ctx context.Context, id CloudProviderInstanceID) (*Instance, error)  // may or may not be locationally scoped
 	TerminateInstance(ctx context.Context, instanceID CloudProviderInstanceID) error // may or may not be locationally scoped
 	ListInstances(ctx context.Context, args ListInstancesArgs) ([]Instance, error)   // return all known instances from cloud api perspective
-	GetInstanceTypes(ctx context.Context, args GetInstanceTypeArgs) ([]InstanceType, error)
+	CloudInstanceType
 }
 
 func ValidateCreateInstance(ctx context.Context, client CloudCreateTerminateInstance, attrs CreateInstanceAttrs) (*Instance, error) {

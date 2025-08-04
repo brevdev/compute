@@ -7,4 +7,6 @@ var (
 	ErrOutOfQuota            = errors.New("out of quota in the region fulfill the request, InsufficientQuota")
 	ErrImageNotFound         = errors.New("image not found")
 	ErrDuplicateFirewallRule = errors.New("duplicate firewall rule")
+	ErrInstanceNotFound      = errors.New("instance not found")
+	ErrServiceUnavailable    = errors.New("api is temporarily unavailable")
 )
