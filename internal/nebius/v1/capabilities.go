@@ -17,11 +17,11 @@ func getNebiusCapabilities() v1.Capabilities {
 		v1.CapabilityRebootInstance,          // Nebius supports instance restart operations
 		v1.CapabilityStopStartInstance,       // Nebius supports instance stop/start operations
 
-		v1.CapabilityModifyFirewall,        // Nebius has Security Groups for firewall management
-		v1.CapabilityMachineImage,          // Nebius supports custom machine images
-		v1.CapabilityResizeInstanceVolume,  // Nebius supports disk resizing
-		v1.CapabilityTags,                  // Nebius supports resource tagging
-		v1.CapabilityInstanceUserData,      // Nebius supports user data in instance creation
+		v1.CapabilityModifyFirewall,       // Nebius has Security Groups for firewall management
+		v1.CapabilityMachineImage,         // Nebius supports custom machine images
+		v1.CapabilityResizeInstanceVolume, // Nebius supports disk resizing
+		v1.CapabilityTags,                 // Nebius supports resource tagging
+		v1.CapabilityInstanceUserData,     // Nebius supports user data in instance creation
 
 	}
 }

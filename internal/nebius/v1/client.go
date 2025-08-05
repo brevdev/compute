@@ -9,9 +9,9 @@ import (
 )
 
 type NebiusCredential struct {
-	RefID              string
-	ServiceAccountKey  string // JSON service account key
-	ProjectID          string
+	RefID             string
+	ServiceAccountKey string // JSON service account key
+	ProjectID         string
 }
 
 var _ v1.CloudCredential = &NebiusCredential{}

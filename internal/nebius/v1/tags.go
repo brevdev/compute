@@ -6,6 +6,6 @@ import (
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
-func (c *NebiusClient) UpdateInstanceTags(ctx context.Context, args v1.UpdateInstanceTagsArgs) error {
+func (c *NebiusClient) UpdateInstanceTags(_ context.Context, args v1.UpdateInstanceTagsArgs) error {
 	return v1.ErrNotImplemented
 }

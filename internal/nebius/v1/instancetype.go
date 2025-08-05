@@ -7,7 +7,7 @@ import (
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
-func (c *NebiusClient) GetInstanceTypes(ctx context.Context, args v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
+func (c *NebiusClient) GetInstanceTypes(_ context.Context, args v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
 	return nil, v1.ErrNotImplemented
 }
 
@@ -17,8 +17,8 @@ func (c *NebiusClient) GetInstanceTypePollTime() time.Duration {
 
 func (c *NebiusClient) MergeInstanceTypeForUpdate(currIt v1.InstanceType, newIt v1.InstanceType) v1.InstanceType {
 	merged := newIt
-	
+
 	merged.ID = currIt.ID
-	
+
 	return merged
 }
