@@ -2,7 +2,9 @@ package v1
 
 import (
 	"context"
+	"net/http"
 
+	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
@@ -12,15 +14,21 @@ type LambdaLabsClient struct {
 	v1.NotImplCloudClient
 	apiKey  string
 	baseURL string
+	client  *openapi.APIClient
 }
 
 var _ v1.CloudClient = &LambdaLabsClient{}
 
 // NewLambdaLabsClient creates a new Lambda Labs client
 func NewLambdaLabsClient(apiKey string) *LambdaLabsClient {
+	config := openapi.NewConfiguration()
+	config.HTTPClient = http.DefaultClient
+	client := openapi.NewAPIClient(config)
+
 	return &LambdaLabsClient{
 		apiKey:  apiKey,
 		baseURL: "https://cloud.lambda.ai/api/v1",
+		client:  client,
 	}
 }
 
@@ -50,4 +58,10 @@ func (c *LambdaLabsClient) GetTenantID() (string, error) {
 // GetReferenceID returns the reference ID for this client
 func (c *LambdaLabsClient) GetReferenceID() string {
 	return "lambdalabs-client"
+}
+
+func (c *LambdaLabsClient) makeAuthContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, openapi.ContextBasicAuth, openapi.BasicAuth{
+		UserName: c.apiKey,
+	})
 }
