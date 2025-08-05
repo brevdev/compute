@@ -52,5 +52,4 @@ jobs:
       with:
         name: lambdalabs-validation-results
         path: |
-          internal/lambdalabs/test-results.xml
           internal/lambdalabs/coverage.out
