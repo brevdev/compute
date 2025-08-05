@@ -143,6 +143,31 @@ func parseGPUFromDescription(description string) v1.GPU {
 	return gpu
 }
 
-func (c *LambdaLabsClient) GetLocations(_ context.Context, _ v1.GetLocationsArgs) ([]v1.Location, error) {
-	return nil, v1.ErrNotImplemented
+func (c *LambdaLabsClient) GetLocations(ctx context.Context, _ v1.GetLocationsArgs) ([]v1.Location, error) {
+	resp, httpResp, err := c.client.DefaultAPI.InstanceTypes(c.makeAuthContext(ctx)).Execute()
+	if httpResp != nil {
+		defer func() { _ = httpResp.Body.Close() }()
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get instance types: %w", err)
+	}
+
+	locationMap := make(map[string]bool)
+	for _, llInstanceTypeData := range resp.Data {
+		for _, region := range llInstanceTypeData.RegionsWithCapacityAvailable {
+			locationMap[region.Name] = true
+		}
+	}
+
+	var locations []v1.Location
+	for locationName := range locationMap {
+		locations = append(locations, v1.Location{
+			Name:        locationName,
+			Description: fmt.Sprintf("Lambda Labs region: %s", locationName),
+			Available:   true,
+			Country:     "USA",
+		})
+	}
+
+	return locations, nil
 }

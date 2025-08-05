@@ -10,6 +10,8 @@ import (
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
+const lambdaLabsTimeNameFormat = "2006-01-02-15-04-05Z07-00"
+
 // CreateInstance creates a new instance in Lambda Labs
 // Supported via: POST /api/v1/instance-operations/launch
 func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateInstanceAttrs) (*v1.Instance, error) {
@@ -47,9 +49,11 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 		FileSystemNames:  []string{},
 	}
 
+	name := fmt.Sprintf("%s--%s", c.GetReferenceID(), time.Now().UTC().Format(lambdaLabsTimeNameFormat))
 	if attrs.Name != "" {
-		request.Name = *openapi.NewNullableString(&attrs.Name)
+		name = fmt.Sprintf("%s--%s--%s", c.GetReferenceID(), attrs.Name, time.Now().UTC().Format(lambdaLabsTimeNameFormat))
 	}
+	request.Name = *openapi.NewNullableString(&name)
 
 	resp, httpResp, err := c.client.DefaultAPI.LaunchInstance(c.makeAuthContext(ctx)).LaunchInstanceRequest(request).Execute()
 	if httpResp != nil {
