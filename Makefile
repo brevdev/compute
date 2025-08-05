@@ -59,6 +59,18 @@ build-windows:
 .PHONY: test
 test:
 	@echo "Running tests..."
+	$(GOTEST) -v -short ./...
+
+# Run validation tests
+.PHONY: test-validation
+test-validation:
+	@echo "Running validation tests..."
+	$(GOTEST) -v -short=false ./...
+
+# Run all tests including validation
+.PHONY: test-all
+test-all:
+	@echo "Running all tests..."
 	$(GOTEST) -v ./...
 
 # Run tests with coverage
@@ -181,7 +193,9 @@ help:
 	@echo "Available targets:"
 	@echo "  build          - Build the project"
 	@echo "  build-all      - Build for Linux, macOS, and Windows"
-	@echo "  test           - Run tests"
+	@echo "  test           - Run tests (with -short flag)"
+	@echo "  test-validation - Run validation tests (without -short flag)"
+	@echo "  test-all       - Run all tests including validation"
 	@echo "  test-coverage  - Run tests with coverage report"
 	@echo "  test-race      - Run tests with race detection"
 	@echo "  bench          - Run benchmarks"
@@ -197,4 +211,4 @@ help:
 	@echo "  docs           - Generate documentation"
 	@echo "  check          - Run all checks (lint, vet, fmt-check, test)"
 	@echo "  install-tools  - Install development tools"
-	@echo "  help           - Show this help message" 
+	@echo "  help           - Show this help message"  
