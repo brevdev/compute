@@ -37,9 +37,33 @@ Validation tests run automatically:
 ## Adding New Providers
 
 1. Create validation test file: `internal/{provider}/v1/validation_test.go`
-2. Create CI workflow: `.github/workflows/validation-{provider}.yml`
-3. Add environment variables to CI secrets
-4. Update this documentation
+2. Use the shared validation package with provider-specific configuration:
+
+```go
+func TestValidationFunctions(t *testing.T) {
+    config := validation.ProviderConfig{
+        ProviderName: "YourProvider",
+        EnvVarName:   "YOUR_PROVIDER_API_KEY",
+        ClientFactory: func(apiKey string) v1.CloudClient {
+            return NewYourProviderClient("validation-test", apiKey)
+        },
+    }
+    validation.RunValidationSuite(t, config)
+}
+```
+
+3. Create CI workflow: `.github/workflows/validation-{provider}.yml`
+4. Add environment variables to CI secrets
+5. Update this documentation
+
+## Shared Validation Package
+
+The validation tests use a shared package at `internal/validation/` that provides:
+- `RunValidationSuite()` - Tests all validation functions from pkg/v1/
+- `RunInstanceLifecycleValidation()` - Tests instance lifecycle operations
+- `ProviderConfig` - Configuration for provider-specific setup
+
+This approach eliminates code duplication and ensures consistent validation testing across all providers.
 
 ## Test Structure
 
