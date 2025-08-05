@@ -30,3 +30,12 @@ func (c *LambdaLabsClient) GetCapabilities(_ context.Context) (v1.Capabilities, 
 
 	return capabilities, nil
 }
+
+// GetCapabilities returns the capabilities for Lambda Labs credential
+func (c *LambdaLabsCredential) GetCapabilities(_ context.Context) (v1.Capabilities, error) {
+	return []v1.Capability{
+		v1.CapabilityCreateInstance,
+		v1.CapabilityTerminateInstance,
+		v1.CapabilityRebootInstance,
+	}, nil
+}

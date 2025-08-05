@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -143,29 +144,46 @@ func parseGPUFromDescription(description string) v1.GPU {
 	return gpu
 }
 
-func (c *LambdaLabsClient) GetLocations(ctx context.Context, _ v1.GetLocationsArgs) ([]v1.Location, error) {
-	resp, httpResp, err := c.client.DefaultAPI.InstanceTypes(c.makeAuthContext(ctx)).Execute()
-	if httpResp != nil {
-		defer func() { _ = httpResp.Body.Close() }()
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to get instance types: %w", err)
+const lambdaLocationsData = `[
+    {"location_name": "us-west-1", "description": "California, USA", "country": "USA"},
+    {"location_name": "us-west-2", "description": "Arizona, USA", "country": "USA"},
+    {"location_name": "us-west-3", "description": "Utah, USA", "country": "USA"},
+    {"location_name": "us-south-1", "description": "Texas, USA", "country": "USA"},
+    {"location_name": "us-east-1", "description": "Virginia, USA", "country": "USA"},
+    {"location_name": "us-midwest-1", "description": "Illinois, USA", "country": "USA"},
+    {"location_name": "australia-southeast-1", "description": "Australia", "country": "AUS"},
+    {"location_name": "europe-central-1", "description": "Germany", "country": "DEU"},
+    {"location_name": "asia-south-1", "description": "India", "country": "IND"},
+    {"location_name": "me-west-1", "description": "Israel", "country": "ISR"},
+    {"location_name": "europe-south-1", "description": "Italy", "country": "ITA"},
+    {"location_name": "asia-northeast-1", "description": "Osaka, Japan", "country": "JPN"},
+    {"location_name": "asia-northeast-2", "description": "Tokyo, Japan", "country": "JPN"},
+    {"location_name": "us-east-3", "description": "Washington D.C, USA", "country": "USA"},
+    {"location_name": "us-east-2", "description": "Washington D.C, USA", "country": "USA"},
+    {"location_name": "australia-east-1", "description": "Sydney, Australia", "country": "AUS"},
+    {"location_name": "us-south-3", "description": "Central Texas, USA", "country": "USA"},
+    {"location_name": "us-south-2", "description": "North Texas, USA", "country": "USA"}
+]`
+
+type LambdaLocation struct {
+	LocationName string `json:"location_name"`
+	Description  string `json:"description"`
+	Country      string `json:"country"`
+}
+
+func (c *LambdaLabsClient) GetLocations(_ context.Context, _ v1.GetLocationsArgs) ([]v1.Location, error) {
+	var regionData []LambdaLocation
+	if err := json.Unmarshal([]byte(lambdaLocationsData), &regionData); err != nil {
+		return nil, fmt.Errorf("failed to parse location data: %w", err)
 	}
 
-	locationMap := make(map[string]bool)
-	for _, llInstanceTypeData := range resp.Data {
-		for _, region := range llInstanceTypeData.RegionsWithCapacityAvailable {
-			locationMap[region.Name] = true
-		}
-	}
-
-	var locations []v1.Location
-	for locationName := range locationMap {
+	locations := make([]v1.Location, 0, len(regionData))
+	for _, region := range regionData {
 		locations = append(locations, v1.Location{
-			Name:        locationName,
-			Description: fmt.Sprintf("Lambda Labs region: %s", locationName),
+			Name:        region.LocationName,
+			Description: region.Description,
 			Available:   true,
-			Country:     "USA",
+			Country:     region.Country,
 		})
 	}
 

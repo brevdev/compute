@@ -46,15 +46,6 @@ func (c *LambdaLabsCredential) GetTenantID() (string, error) {
 	return fmt.Sprintf("lambdalabs-%x", sha256.Sum256([]byte(c.APIKey))), nil
 }
 
-// GetCapabilities returns the capabilities for Lambda Labs
-func (c *LambdaLabsCredential) GetCapabilities(_ context.Context) (v1.Capabilities, error) {
-	return []v1.Capability{
-		v1.CapabilityCreateInstance,
-		v1.CapabilityTerminateInstance,
-		v1.CapabilityRebootInstance,
-	}, nil
-}
-
 // MakeClient creates a new Lambda Labs client from this credential
 func (c *LambdaLabsCredential) MakeClient(_ context.Context, _ string) (v1.CloudClient, error) {
 	return NewLambdaLabsClient(c.RefID, c.APIKey), nil
