@@ -1,10 +1,18 @@
 package v1
 
-import "github.com/brevdev/cloud/pkg/v1"
+import (
+	"context"
 
-const (
-	CapabilityCreateProject v1.Capability = "create-project"
-	CapabilityDeleteProject v1.Capability = "delete-project"
-	CapabilityListProjects  v1.Capability = "list-projects"
-	CapabilityGetProject    v1.Capability = "get-project"
+	"github.com/brevdev/cloud/pkg/v1"
 )
+
+func (c *FluidStackClient) GetCapabilities(_ context.Context) (v1.Capabilities, error) {
+	capabilities := v1.Capabilities{
+		v1.CapabilityCreateInstance,
+		v1.CapabilityTerminateInstance,
+		v1.CapabilityStopStartInstance,
+		v1.CapabilityTags,
+	}
+
+	return capabilities, nil
+}

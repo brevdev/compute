@@ -22,23 +22,7 @@ func (c *FluidStackClient) ListInstances(_ context.Context, _ v1.ListInstancesAr
 	return nil, v1.ErrNotImplemented
 }
 
-func (c *FluidStackClient) StartInstance(_ context.Context, _ v1.CloudProviderInstanceID) error {
-	return v1.ErrNotImplemented
-}
-
-func (c *FluidStackClient) StopInstance(_ context.Context, _ v1.CloudProviderInstanceID) error {
-	return v1.ErrNotImplemented
-}
-
 func (c *FluidStackClient) RebootInstance(_ context.Context, _ v1.CloudProviderInstanceID) error {
-	return v1.ErrNotImplemented
-}
-
-func (c *FluidStackClient) ChangeInstanceType(_ context.Context, _ v1.CloudProviderInstanceID, _ string) error {
-	return v1.ErrNotImplemented
-}
-
-func (c *FluidStackClient) UpdateInstanceTags(_ context.Context, _ v1.UpdateInstanceTagsArgs) error {
 	return v1.ErrNotImplemented
 }
 

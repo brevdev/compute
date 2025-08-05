@@ -2,42 +2,23 @@ package v1
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/brevdev/cloud/pkg/v1"
 )
 
 type FluidStackClient struct {
-	*v1.NotImplCloudClient
-	baseURL    string
-	httpClient *http.Client
-	apiKey     string
+	v1.NotImplCloudClient
+	apiKey  string
+	baseURL string
 }
+
+var _ v1.CloudClient = &FluidStackClient{}
 
 func NewFluidStackClient(apiKey string) *FluidStackClient {
 	return &FluidStackClient{
-		NotImplCloudClient: &v1.NotImplCloudClient{},
-		baseURL:            "https://api.fluidstack.io/v1alpha1",
-		httpClient:         &http.Client{},
-		apiKey:             apiKey,
+		apiKey:  apiKey,
+		baseURL: "https://api.fluidstack.io/v1alpha1",
 	}
-}
-
-func (c *FluidStackClient) GetCapabilities(_ context.Context) (v1.Capabilities, error) {
-	return []v1.Capability{
-		v1.CapabilityCreateInstance,
-		v1.CapabilityTerminateInstance,
-		v1.CapabilityStopStartInstance,
-		v1.CapabilityTags,
-		CapabilityCreateProject,
-		CapabilityDeleteProject,
-		CapabilityListProjects,
-		CapabilityGetProject,
-	}, nil
-}
-
-func (c *FluidStackClient) GetName() string {
-	return "fluidstack"
 }
 
 func (c *FluidStackClient) GetAPIType() v1.APIType {
@@ -58,8 +39,4 @@ func (c *FluidStackClient) GetTenantID() (string, error) {
 
 func (c *FluidStackClient) GetReferenceID() string {
 	return c.apiKey
-}
-
-func (c *FluidStackClient) GetRegions(_ context.Context) ([]*v1.Location, error) {
-	return nil, v1.ErrNotImplemented
 }
