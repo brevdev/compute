@@ -11,7 +11,7 @@ package openapi
 
 import (
 	"context"
-	openapiclient "github.com/brevdev/cloud"
+	openapiclient "github.com/brevdev/cloud/internal/fluidstack/gen/fluidstack"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
