@@ -1,6 +1,6 @@
 # 🔒 Security Requirements
 
-This document outlines the security requirements and best practices for implementing cloud integrations with the Brev Compute SDK.
+This document outlines the security requirements and best practices for implementing cloud integrations with the Brev Compute SDK. If the cloud provider has a different security model, please indicate in the providers SECURITY.md file.
 
 ## 🌐 Network Security Requirements
 
