@@ -48,13 +48,41 @@ This document explains how Nebius VMs meet Brev Cloud SDK’s security requireme
 
 ## Implementation Checklist
 
-* [x] Default deny-all inbound using custom Nebius Security Group
-* [x] Allow-all outbound via security group egress rule
-* [x] `FirewallRule` maps to explicit Nebius SG ingress rule
-* [x] Instances in the same cluster can talk via shared SG "self" rule
-* [x] Different clusters are isolated using separate SGs or VPCs
-* [x] Disk encryption enabled by default
-* [x] TLS used for all API and external communication
+* [ ] Default deny-all inbound using custom Nebius Security Group
+* [ ] Allow-all outbound via security group egress rule
+* [ ] `FirewallRule` maps to explicit Nebius SG ingress rule
+* [ ] Instances in the same cluster can talk via shared SG "self" rule
+* [ ] Different clusters are isolated using separate SGs or VPCs
+* [x] Disk encryption enabled by default (Nebius default)
+* [x] TLS used for all API and external communication (Nebius SDK default)
+
+## Authentication Implementation
+
+### Service Account Setup
+
+Nebius uses JWT-based service account authentication:
+
+1. **Service Account Creation**: Create a service account in Nebius IAM
+2. **Key Generation**: Generate a JSON service account key file
+3. **JWT Token Exchange**: SDK automatically handles JWT signing and token exchange
+4. **API Authentication**: All API calls use Bearer token authentication
+
+### Authentication Flow
+
+```
+1. Load service account JSON key
+2. Generate JWT with RS256 signing (kid, iss, sub, exp claims)
+3. Exchange JWT for IAM token via TokenExchangeService
+4. Use IAM token in Authorization header for compute API calls
+```
+
+### Implementation Details
+
+The `NebiusClient` uses the official Nebius Go SDK which handles:
+- Automatic JWT token generation and refresh
+- gRPC connection management with TLS 1.2+
+- Service discovery for Nebius API endpoints
+- Retry logic and error handling
 
 ---
 
