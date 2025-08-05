@@ -47,8 +47,7 @@ func TestValidationFunctions(t *testing.T) {
     }
 
     config := validation.ProviderConfig{
-        ProviderName: "YourProvider",
-        Credential:   NewYourProviderCredential("validation-test", apiKey),
+        Credential: NewYourProviderCredential("validation-test", apiKey),
     }
     validation.RunValidationSuite(t, config)
 }
@@ -65,7 +64,7 @@ The validation tests use a shared package at `internal/validation/` that provide
 - `RunInstanceLifecycleValidation()` - Tests instance lifecycle operations
 - `ProviderConfig` - Configuration for provider-specific setup using CloudCredential
 
-The `ProviderConfig` uses the existing `CloudCredential` interface which acts as a factory for `CloudClient` instances. This approach eliminates code duplication and ensures consistent validation testing across all providers while leveraging the existing credential abstraction.
+The `ProviderConfig` uses the existing `CloudCredential` interface which acts as a factory for `CloudClient` instances. The provider name is automatically obtained from the credential's `GetCloudProviderID()` method. This approach eliminates code duplication and ensures consistent validation testing across all providers while leveraging the existing credential abstraction.
 
 ## Test Structure
 

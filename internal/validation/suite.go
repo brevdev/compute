@@ -10,8 +10,7 @@ import (
 )
 
 type ProviderConfig struct {
-	ProviderName string
-	Credential   v1.CloudCredential
+	Credential v1.CloudCredential
 }
 
 func RunValidationSuite(t *testing.T, config ProviderConfig) {
@@ -24,7 +23,7 @@ func RunValidationSuite(t *testing.T, config ProviderConfig) {
 
 	client, err := config.Credential.MakeClient(ctx, "")
 	if err != nil {
-		t.Skipf("Failed to create client for %s: %v", config.ProviderName, err)
+		t.Fatalf("Failed to create client for %s: %v", config.Credential.GetCloudProviderID(), err)
 	}
 
 	t.Run("ValidateGetLocations", func(t *testing.T) {
@@ -63,7 +62,7 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 
 	client, err := config.Credential.MakeClient(ctx, "")
 	if err != nil {
-		t.Skipf("Failed to create client for %s: %v", config.ProviderName, err)
+		t.Fatalf("Failed to create client for %s: %v", config.Credential.GetCloudProviderID(), err)
 	}
 
 	types, err := client.GetInstanceTypes(ctx, v1.GetInstanceTypeArgs{})

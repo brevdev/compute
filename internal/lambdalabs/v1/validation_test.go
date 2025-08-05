@@ -14,8 +14,7 @@ func TestValidationFunctions(t *testing.T) {
 	}
 
 	config := validation.ProviderConfig{
-		ProviderName: "LambdaLabs",
-		Credential:   NewLambdaLabsCredential("validation-test", apiKey),
+		Credential: NewLambdaLabsCredential("validation-test", apiKey),
 	}
 
 	validation.RunValidationSuite(t, config)
@@ -28,8 +27,7 @@ func TestInstanceLifecycleValidation(t *testing.T) {
 	}
 
 	config := validation.ProviderConfig{
-		ProviderName: "LambdaLabs",
-		Credential:   NewLambdaLabsCredential("validation-test", apiKey),
+		Credential: NewLambdaLabsCredential("validation-test", apiKey),
 	}
 
 	validation.RunInstanceLifecycleValidation(t, config)
