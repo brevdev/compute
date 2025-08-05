@@ -17,13 +17,13 @@ type FluidStackClient struct {
 func NewFluidStackClient(apiKey string) *FluidStackClient {
 	return &FluidStackClient{
 		NotImplCloudClient: &v1.NotImplCloudClient{},
-		baseURL:           "https://api.fluidstack.io/v1alpha1",
-		httpClient:        &http.Client{},
-		apiKey:            apiKey,
+		baseURL:            "https://api.fluidstack.io/v1alpha1",
+		httpClient:         &http.Client{},
+		apiKey:             apiKey,
 	}
 }
 
-func (c *FluidStackClient) GetCapabilities(ctx context.Context) (v1.Capabilities, error) {
+func (c *FluidStackClient) GetCapabilities(_ context.Context) (v1.Capabilities, error) {
 	return []v1.Capability{
 		v1.CapabilityCreateInstance,
 		v1.CapabilityTerminateInstance,
@@ -48,7 +48,7 @@ func (c *FluidStackClient) GetCloudProviderID() v1.CloudProviderID {
 	return "fluidstack"
 }
 
-func (c *FluidStackClient) MakeClient(ctx context.Context, location string) (v1.CloudClient, error) {
+func (c *FluidStackClient) MakeClient(_ context.Context, _ string) (v1.CloudClient, error) {
 	return c, nil
 }
 
@@ -60,6 +60,6 @@ func (c *FluidStackClient) GetReferenceID() string {
 	return c.apiKey
 }
 
-func (c *FluidStackClient) GetRegions(ctx context.Context) ([]*v1.Location, error) {
+func (c *FluidStackClient) GetRegions(_ context.Context) ([]*v1.Location, error) {
 	return nil, v1.ErrNotImplemented
 }

@@ -6,6 +6,6 @@ import (
 	"github.com/brevdev/cloud/pkg/v1"
 )
 
-func (c *FluidStackClient) GetImages(ctx context.Context, args v1.GetImageArgs) ([]v1.Image, error) {
+func (c *FluidStackClient) GetImages(_ context.Context, _ v1.GetImageArgs) ([]v1.Image, error) {
 	return nil, v1.ErrNotImplemented
 }

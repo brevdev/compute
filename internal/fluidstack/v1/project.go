@@ -16,18 +16,18 @@ type CreateProjectRequest struct {
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
-func (c *FluidStackClient) CreateProject(ctx context.Context, name string, tags map[string]string) (*Project, error) {
+func (c *FluidStackClient) CreateProject(_ context.Context, _ string, _ map[string]string) (*Project, error) {
 	return nil, nil
 }
 
-func (c *FluidStackClient) DeleteProject(ctx context.Context, projectID string) error {
+func (c *FluidStackClient) DeleteProject(_ context.Context, _ string) error {
 	return nil
 }
 
-func (c *FluidStackClient) ListProjects(ctx context.Context) ([]*Project, error) {
+func (c *FluidStackClient) ListProjects(_ context.Context) ([]*Project, error) {
 	return nil, nil
 }
 
-func (c *FluidStackClient) GetProject(ctx context.Context, projectID string) (*Project, error) {
+func (c *FluidStackClient) GetProject(_ context.Context, _ string) (*Project, error) {
 	return nil, nil
 }

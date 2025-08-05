@@ -6,6 +6,6 @@ import (
 	"github.com/brevdev/cloud/pkg/v1"
 )
 
-func (c *FluidStackClient) ResizeInstanceVolume(ctx context.Context, args v1.ResizeInstanceVolumeArgs) error {
+func (c *FluidStackClient) ResizeInstanceVolume(_ context.Context, _ v1.ResizeInstanceVolumeArgs) error {
 	return v1.ErrNotImplemented
 }
