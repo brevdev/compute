@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"net/http"
 
+	openapi "github.com/brevdev/cloud/internal/fluidstack/gen/fluidstack"
 	"github.com/brevdev/cloud/pkg/v1"
 )
 
@@ -63,18 +65,25 @@ func (c *FluidStackCredential) MakeClient(_ context.Context, _ string) (v1.Cloud
 // It embeds NotImplCloudClient to handle unsupported features
 type FluidStackClient struct {
 	v1.NotImplCloudClient
-	refID   string
-	apiKey  string
-	baseURL string
+	refID     string
+	apiKey    string
+	baseURL   string
+	projectID string
+	client    *openapi.APIClient
 }
 
 var _ v1.CloudClient = &FluidStackClient{}
 
 func NewFluidStackClient(refID, apiKey string) *FluidStackClient {
+	config := openapi.NewConfiguration()
+	config.HTTPClient = http.DefaultClient
+	client := openapi.NewAPIClient(config)
+
 	return &FluidStackClient{
 		refID:   refID,
 		apiKey:  apiKey,
 		baseURL: "https://api.fluidstack.io/v1alpha1",
+		client:  client,
 	}
 }
 
@@ -96,4 +105,16 @@ func (c *FluidStackClient) MakeClient(_ context.Context, _ string) (v1.CloudClie
 // GetReferenceID returns the reference ID for this client
 func (c *FluidStackClient) GetReferenceID() string {
 	return c.refID
+}
+
+func (c *FluidStackClient) makeAuthContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, openapi.ContextAccessToken, c.apiKey)
+}
+
+func (c *FluidStackClient) makeProjectContext(ctx context.Context) context.Context {
+	// FluidStack requires project ID to be passed, but we'll use a default for now
+	if c.projectID == "" {
+		c.projectID = "default-project-id"
+	}
+	return ctx
 }

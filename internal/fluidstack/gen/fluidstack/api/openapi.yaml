@@ -1,0 +1,3005 @@
+openapi: 3.0.0
+info:
+  description: Fluidstack Infrastructure API
+  title: Infrastructure API
+  version: v1alpha1
+servers:
+- url: https://<region>.atlas.fluidstack.io/api/v1alpha1
+security:
+- bearerAuth: []
+paths:
+  /projects:
+    get:
+      operationId: ListProjects
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Project'
+                type: array
+          description: A list of projects
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List all projects
+      tags:
+      - Projects
+    post:
+      operationId: CreateProject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectsPostRequest'
+        description: Details of the project to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: Project created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid input
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Create a project
+      tags:
+      - Projects
+  /projects/{id}:
+    delete:
+      operationId: DeleteProject
+      parameters:
+      - description: Unique identifier of the project to delete
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "204":
+          description: Project deleted successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Project not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Delete a project
+      tags:
+      - Projects
+    get:
+      operationId: GetProject
+      parameters:
+      - description: Unique identifier of the project
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: Project details retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Project not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Get a project
+      tags:
+      - Projects
+  /instances:
+    get:
+      operationId: ListInstances
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Instance'
+                type: array
+          description: A list of machine instances
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List all machine instances
+      tags:
+      - Instances
+    post:
+      operationId: CreateInstance
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstancesPostRequest'
+        description: Details of the instance to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+          description: Instance created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid input
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Create a machine instance
+      tags:
+      - Instances
+  /instances/{id}:
+    delete:
+      operationId: DeleteInstance
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the instance
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "204":
+          description: Instance deleted successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Instance not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Delete a machine instance
+      tags:
+      - Instances
+    get:
+      operationId: GetInstance
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the instance
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+          description: Instance details retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Instance not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Get a machine instance
+      tags:
+      - Instances
+  /instances/{id}/actions/start:
+    post:
+      operationId: StartInstance
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the instance
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "202":
+          description: Instance start initiated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid input
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Instance not found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Instance state conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Start a machine instance
+      tags:
+      - Instances
+  /instances/{id}/actions/stop:
+    post:
+      operationId: StopInstance
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the instance
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "202":
+          description: Instance stop initiated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid input
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Instance not found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Instance state conflict
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Stop a machine instance
+      tags:
+      - Instances
+  /instance-types:
+    get:
+      operationId: ListInstanceTypes
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/InstanceType'
+                type: array
+          description: A list of available instance types
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List all available instance types
+      tags:
+      - Instance Types
+  /filesystems:
+    get:
+      operationId: ListFilesystems
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Filesystem'
+                type: array
+          description: A list of filesystems
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List all filesystems
+      tags:
+      - Filesystems
+    post:
+      operationId: CreateFilesystem
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FilesystemsPostRequest'
+        description: Details of the filesystem to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Filesystem'
+          description: Filesystem created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid input
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Create a filesystem
+      tags:
+      - Filesystems
+  /filesystems/{id}:
+    delete:
+      operationId: DeleteFilesystem
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the filesystem
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "204":
+          description: Filesystem deleted successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Filesystem not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Delete a filesystem
+      tags:
+      - Filesystems
+    get:
+      operationId: GetFilesystem
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the filesystem
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Filesystem'
+          description: Filesystem details retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Filesystem not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Get a filesystem
+      tags:
+      - Filesystems
+  /kubernetes/clusters:
+    get:
+      operationId: ListKubernetesClusters
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/KubernetesCluster'
+                type: array
+          description: Cluster details retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List all clusters
+      tags:
+      - Kubernetes
+    post:
+      operationId: CreateKubernetesCluster
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KubernetesClustersPostRequest'
+        description: Details of the cluster to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KubernetesCluster'
+          description: Cluster created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid input
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cluster already exists
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Create a cluster
+      tags:
+      - Kubernetes
+  /kubernetes/clusters/{id}:
+    delete:
+      operationId: DeleteKubernetesCluster
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the kubernetes cluster to delete
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "204":
+          description: Kubernetes cluster deleted successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Kubernetes cluster not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Delete a cluster
+      tags:
+      - Kubernetes
+    get:
+      operationId: GetKubernetesCluster
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the kubernetes cluster
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KubernetesCluster'
+          description: Kubernetes cluster details retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Kubernetes cluster not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Get a cluster
+      tags:
+      - Kubernetes
+  /kubernetes/clusters/{cluster_id}/node-pools:
+    get:
+      operationId: ListKubernetesNodePools
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster
+        explode: false
+        in: path
+        name: cluster_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ClusterID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/KubernetesNodePool'
+                type: array
+          description: Node pools retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cluster not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List all node pools for a cluster
+      tags:
+      - Kubernetes
+    post:
+      operationId: CreateKubernetesNodePool
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster
+        explode: false
+        in: path
+        name: cluster_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ClusterID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KubernetesNodePoolPostRequest'
+        description: Details of the node pool to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KubernetesNodePool'
+          description: Node pool created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid input
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Node pool already exists
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Create a node pool
+      tags:
+      - Kubernetes
+  /kubernetes/clusters/{cluster_id}/node-pools/{node_pool_id}:
+    delete:
+      operationId: DeleteKubernetesNodePool
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster
+        explode: false
+        in: path
+        name: cluster_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ClusterID
+      - description: Unique identifier of the node pool to delete
+        explode: false
+        in: path
+        name: node_pool_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: NodePoolID
+      responses:
+        "204":
+          description: Node pool deleted successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Node pool not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Delete a node pool
+      tags:
+      - Kubernetes
+    get:
+      operationId: GetKubernetesNodePool
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster
+        explode: false
+        in: path
+        name: cluster_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ClusterID
+      - description: Unique identifier of the node pool
+        explode: false
+        in: path
+        name: node_pool_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: NodePoolID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KubernetesNodePool'
+          description: Node pool details retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Node pool not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Get a node pool
+      tags:
+      - Kubernetes
+  /kubernetes/clusters/{cluster_id}/credentials:
+    get:
+      operationId: GetKubernetesClusterCredentials
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the kubernetes cluster
+        explode: false
+        in: path
+        name: cluster_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ClusterID
+      responses:
+        "200":
+          content:
+            application/yaml:
+              schema:
+                description: Base64-encoded kubeconfig file
+                format: byte
+                type: string
+          description: Kubeconfig credentials retrieved successfully
+          headers:
+            Cache-Control:
+              description: Prevents credential caching
+              explode: false
+              schema:
+                example: "no-store, no-cache, must-revalidate"
+                type: string
+              style: simple
+            Content-Disposition:
+              description: Forces download as file
+              explode: false
+              schema:
+                example: attachment; filename=kubeconfig
+                type: string
+              style: simple
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Kubernetes cluster not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Internal Server Error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Get kubeconfig credentials for a cluster
+      tags:
+      - Kubernetes
+  /slurm/clusters:
+    get:
+      operationId: ListSlurmClusters
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SlurmCluster'
+                type: array
+          description: Slurm Cluster details retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List all clusters
+      tags:
+      - Slurm
+    post:
+      operationId: CreateSlurmCluster
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlurmClustersPostRequest'
+        description: Details of the cluster to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlurmCluster'
+          description: Cluster created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid input
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Create a cluster
+      tags:
+      - Slurm
+  /slurm/clusters/{id}:
+    delete:
+      operationId: DeleteSlurmCluster
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster to delete
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ID
+      responses:
+        "204":
+          description: Cluster deleted successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cluster not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Delete a cluster
+      tags:
+      - Slurm
+    get:
+      operationId: GetSlurmCluster
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlurmCluster'
+          description: Cluster details retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cluster not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Get a cluster
+      tags:
+      - Slurm
+  /slurm/clusters/{cluster_id}/node-pools:
+    get:
+      operationId: ListSlurmNodePools
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster
+        explode: false
+        in: path
+        name: cluster_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ClusterID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SlurmNodePool'
+                type: array
+          description: Node pools retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Slurm cluster not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List all node pools for a cluster
+      tags:
+      - Slurm
+    post:
+      operationId: CreateSlurmNodePool
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster
+        explode: false
+        in: path
+        name: cluster_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ClusterID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlurmNodePoolPostRequest'
+        description: Details of the node pool to create
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlurmNodePool'
+          description: Node pool created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid input
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Node pool already exists
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Create a node pool
+      tags:
+      - Slurm
+  /capacity:
+    get:
+      operationId: ListCapacity
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ListCapacity_200_response_inner'
+                type: array
+          description: A list of available capacity by instance type.
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List available capacity
+      tags:
+      - Capacity
+  /capabilities:
+    get:
+      operationId: ListCapabilities
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Capabilities'
+          description: A list of available capabilities
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: List available capabilities
+      tags:
+      - Capabilities
+  /slurm/clusters/{cluster_id}/node-pools/{node_pool_id}:
+    delete:
+      operationId: DeleteSlurmNodePool
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster
+        explode: false
+        in: path
+        name: cluster_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ClusterID
+      - description: Unique identifier of the node pool to delete
+        explode: false
+        in: path
+        name: node_pool_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: NodePoolID
+      responses:
+        "204":
+          description: Node pool deleted successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Node pool not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Delete a node pool
+      tags:
+      - Slurm
+    get:
+      operationId: GetSlurmNodePool
+      parameters:
+      - description: Project identifier passed as a header
+        explode: false
+        in: header
+        name: X-PROJECT-ID
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ProjectID
+      - description: Unique identifier of the cluster
+        explode: false
+        in: path
+        name: cluster_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: ClusterID
+      - description: Unique identifier of the node pool
+        explode: false
+        in: path
+        name: node_pool_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        style: simple
+        x-go-name: NodePoolID
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlurmNodePool'
+          description: Node pool details retrieved successfully
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Forbidden
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Node pool not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Server error
+        "501":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Not implemented
+      summary: Get a node pool
+      tags:
+      - Slurm
+components:
+  parameters:
+    X-PROJECT-ID:
+      description: Project identifier passed as a header
+      explode: false
+      in: header
+      name: X-PROJECT-ID
+      required: true
+      schema:
+        format: uuid
+        type: string
+        x-go-type: uuid.UUID
+        x-go-type-import:
+          path: github.com/google/uuid
+      style: simple
+      x-go-name: ProjectID
+  schemas:
+    Error:
+      description: Error response
+      example:
+        message: message
+      properties:
+        message:
+          description: Human-readable error message
+          type: string
+      required:
+      - message
+      type: object
+    InstancesPostRequest:
+      description: POST request for a machine instance
+      example:
+        image: image://ubuntu22.04
+        preemptible: false
+        userData: !!binary |-
+          STJOc2IzVmtMV052Ym1acFp3cHdZV05yWVdkbGN6b0tJQ0F0SUc1bmFXNTQK
+        name: instance-1
+        ephemeral: false
+        type: h100-hgx-80gb.8x
+        filesystems:
+        - 123e4567-e89b-12d3-a456-426614174000
+        - 123e4567-e89b-12d3-a456-426614174001
+        tags:
+          environment: production
+      properties:
+        name:
+          description: Name of the instance
+          example: instance-1
+          type: string
+        type:
+          description: Instance type
+          example: h100-hgx-80gb.8x
+          type: string
+        image:
+          default: image://ubuntu22.04
+          description: Operating system image for the instance
+          example: image://ubuntu22.04
+          type: string
+        preemptible:
+          default: false
+          description: Whether the instance is preemptible
+          example: false
+          type: boolean
+        ephemeral:
+          default: false
+          description: Whether the instance is ephemeral
+          example: false
+          type: boolean
+        userData:
+          description: Base64-encoded cloud-init user data for instance initialization
+          example: !!binary |-
+            STJOc2IzVmtMV052Ym1acFp3cHdZV05yWVdkbGN6b0tJQ0F0SUc1bmFXNTQK
+          format: byte
+          nullable: true
+          type: string
+        filesystems:
+          description: List of filesystem UUIDs attached to the instance
+          example:
+          - 123e4567-e89b-12d3-a456-426614174000
+          - 123e4567-e89b-12d3-a456-426614174001
+          items:
+            format: uuid
+            type: string
+            x-go-type: uuid.UUID
+            x-go-type-import:
+              path: github.com/google/uuid
+          type: array
+        tags:
+          additionalProperties:
+            type: string
+          description: |
+            Tags for the instance. Tag keys must be 1–63 characters, start and end with alphanumerics, and may include `-`, `_`, and `.`.
+          example:
+            environment: production
+          type: object
+      required:
+      - name
+      - type
+      type: object
+    Instance:
+      description: machine instance
+      example:
+        image: ubuntu22.04
+        preemptible: false
+        userData: !!binary |-
+          STJOc2IzVmtMV052Ym1acFp3cHdZV05yWVdkbGN6b0tJQ0F0SUc1bmFXNTQK
+        ip: 10.0.0.2
+        name: instance-1
+        ephemeral: false
+        id: 550e8400-e29b-41d4-a716-446655440000
+        state: running
+        type: h100-hgx-80gb.8x
+        filesystems:
+        - 123e4567-e89b-12d3-a456-426614174000
+        - 123e4567-e89b-12d3-a456-426614174001
+        tags:
+          environment: production
+      properties:
+        id:
+          description: Unique identifier of the instance
+          example: 550e8400-e29b-41d4-a716-446655440000
+          format: uuid
+          type: string
+          x-go-name: ID
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        name:
+          description: Name of the instance
+          example: instance-1
+          type: string
+        type:
+          description: Instance type
+          example: h100-hgx-80gb.8x
+          type: string
+        ip:
+          description: Private IP address of the instance
+          example: 10.0.0.2
+          format: ipv4
+          nullable: true
+          type: string
+          x-go-name: IP
+        state:
+          $ref: '#/components/schemas/InstanceState'
+        image:
+          description: Operating system image for the instance
+          example: ubuntu22.04
+          type: string
+        preemptible:
+          description: Whether the instance is preemptible
+          example: false
+          type: boolean
+        ephemeral:
+          description: Whether the instance is ephemeral
+          example: false
+          type: boolean
+        userData:
+          description: Base64-encoded cloud-init user data for instance initialization
+          example: !!binary |-
+            STJOc2IzVmtMV052Ym1acFp3cHdZV05yWVdkbGN6b0tJQ0F0SUc1bmFXNTQK
+          format: byte
+          nullable: true
+          type: string
+        filesystems:
+          description: List of filesystem UUIDs attached to the instance
+          example:
+          - 123e4567-e89b-12d3-a456-426614174000
+          - 123e4567-e89b-12d3-a456-426614174001
+          items:
+            format: uuid
+            type: string
+            x-go-type: uuid.UUID
+            x-go-type-import:
+              path: github.com/google/uuid
+          type: array
+        tags:
+          additionalProperties:
+            type: string
+          description: Tags for the instance
+          example:
+            environment: production
+          type: object
+      required:
+      - ephemeral
+      - filesystems
+      - id
+      - image
+      - ip
+      - name
+      - preemptible
+      - state
+      - tags
+      - type
+      - userData
+      type: object
+    InstanceType:
+      description: Machine instance type
+      example:
+        memory: 960Gi
+        gpuModel: GH100_H100_SXM5_80GB
+        name: h100-hgx-80gb.8x
+        cpu: 96
+        gpuCount: 8
+      properties:
+        name:
+          description: Name of the instance type
+          example: h100-hgx-80gb.8x
+          type: string
+        cpu:
+          description: Number of CPUs the instance type has
+          example: 96
+          type: integer
+        memory:
+          description: Amount of memory the instance type has
+          example: 960Gi
+          type: string
+        gpuModel:
+          description: GPU model the instance type has
+          example: GH100_H100_SXM5_80GB
+          type: string
+        gpuCount:
+          description: Number of GPUs the instance type has
+          example: 8
+          type: integer
+      required:
+      - cpu
+      - memory
+      - name
+      type: object
+    InstanceState:
+      description: Possible states of a machine instance
+      enum:
+      - creating
+      - starting
+      - running
+      - stopping
+      - stopped
+      - deleting
+      - out-of-stock
+      - error
+      example: running
+      type: string
+    FilesystemsPostRequest:
+      description: POST request for a filesystem
+      example:
+        size: 512Gi
+        name: fs-1
+      properties:
+        name:
+          description: Name of the filesystem
+          example: fs-1
+          type: string
+        size:
+          description: Size of the filesystem in GB
+          example: 512Gi
+          type: string
+      required:
+      - name
+      - size
+      type: object
+    Filesystem:
+      description: Filesystem (virtio-fs)
+      example:
+        size: 512Gi
+        name: fs-1
+        id: 123e4567-e89b-12d3-a456-426614174002
+      properties:
+        id:
+          description: Unique identifier of the filesystem
+          example: 123e4567-e89b-12d3-a456-426614174002
+          format: uuid
+          type: string
+          x-go-name: ID
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        name:
+          description: Name of the filesystem
+          example: fs-1
+          type: string
+        size:
+          description: Size of the filesystem in GB
+          example: 512Gi
+          type: string
+      required:
+      - id
+      - name
+      - size
+      type: object
+    ProjectsPostRequest:
+      description: POST request for a project
+      example:
+        name: project-1
+        tags:
+          team: ml-ops
+      properties:
+        name:
+          description: Name of the project
+          example: project-1
+          type: string
+        tags:
+          additionalProperties:
+            type: string
+          description: |
+            Tags for the project. Tag keys must be 1–63 characters, start and end with alphanumerics, and may include `-`, `_`, and `.`.
+          example:
+            team: ml-ops
+          type: object
+      required:
+      - name
+      type: object
+    Project:
+      description: Project information
+      example:
+        name: project-1
+        id: 123e4567-e89b-12d3-a456-426614174003
+        state: active
+        tags:
+          team: ml-ops
+      properties:
+        id:
+          description: Unique identifier of the project
+          example: 123e4567-e89b-12d3-a456-426614174003
+          format: uuid
+          type: string
+          x-go-name: ID
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        name:
+          description: Name of the project
+          example: project-1
+          type: string
+        state:
+          $ref: '#/components/schemas/ProjectState'
+        tags:
+          additionalProperties:
+            type: string
+          description: Tags for the project
+          example:
+            team: ml-ops
+          type: object
+      required:
+      - id
+      - name
+      - state
+      - tags
+      type: object
+    ProjectState:
+      description: Possible states of a project
+      enum:
+      - active
+      - deleting
+      example: active
+      type: string
+    KubernetesClustersPostRequest:
+      description: POST request for a kubernetes cluster
+      example:
+        name: cluster-01
+        version: 1.32.1
+      properties:
+        name:
+          description: The cluster name.
+          example: cluster-01
+          type: string
+        version:
+          description: The cluster version.
+          example: 1.32.1
+          type: string
+      required:
+      - name
+      type: object
+    KubernetesCluster:
+      description: Kubernetes Cluster
+      example:
+        endpoint: https://api.cluster-01.example.com
+        name: cluster-01
+        id: 123e4567-e89b-12d3-a456-426614174003
+        version: 1.32.1
+      properties:
+        id:
+          description: The unique identifier of the cluster
+          example: 123e4567-e89b-12d3-a456-426614174003
+          format: uuid
+          type: string
+          x-go-name: ID
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        name:
+          description: The cluster name.
+          example: cluster-01
+          type: string
+        version:
+          description: The cluster version.
+          example: 1.32.1
+          type: string
+        endpoint:
+          description: The API server endpoint of the kubernetes cluster
+          example: https://api.cluster-01.example.com
+          format: uri
+          type: string
+      required:
+      - id
+      - name
+      - version
+      type: object
+    KubernetesNodePoolPostRequest:
+      description: POST request for a kubernetes node pool
+      example:
+        name: pool-01
+        count: 3
+        type: h100-hgx-80gb.8x
+        version: 1.32.1
+      properties:
+        name:
+          description: Name of the kubernetes node pool
+          example: pool-01
+          type: string
+        type:
+          description: Instance type of the kubernetes node pool
+          example: h100-hgx-80gb.8x
+          type: string
+        count:
+          description: Number of nodes in the kubernetes node pool
+          example: 3
+          type: integer
+        version:
+          description: Version of the kubernetes node pool
+          example: 1.32.1
+          type: string
+      required:
+      - count
+      - name
+      - type
+      type: object
+    KubernetesNodePool:
+      description: Kubernetes Node Pool
+      example:
+        cluster: cluster-01
+        nodes:
+        - createdAt: 2023-10-01T12:00:00Z
+          accelerator:
+            product: NVIDIA-H100-80GB-HBM3
+            driverVersion: 550.127.08
+            type: nvidia/gpu
+          instanceID: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: node-01
+          kubeletVersion: v1.32.1
+          state: ready
+          taints:
+          - effect: NoSchedule
+            value: present
+            key: nvidia.com/gpu
+          - effect: NoSchedule
+            value: present
+            key: nvidia.com/gpu
+          conditions:
+          - reason: KubeletReady
+            lastHeartbeatTime: 2023-10-01T12:00:00Z
+            type: Ready
+            lastTransitionTime: 2023-10-01T12:00:00Z
+            message: Kubelet is ready
+            status: "True"
+          - reason: KubeletReady
+            lastHeartbeatTime: 2023-10-01T12:00:00Z
+            type: Ready
+            lastTransitionTime: 2023-10-01T12:00:00Z
+            message: Kubelet is ready
+            status: "True"
+          labels:
+            kubernetes.io/hostname: node-01
+            node-role.kubernetes.io/worker: ""
+        - createdAt: 2023-10-01T12:00:00Z
+          accelerator:
+            product: NVIDIA-H100-80GB-HBM3
+            driverVersion: 550.127.08
+            type: nvidia/gpu
+          instanceID: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          name: node-01
+          kubeletVersion: v1.32.1
+          state: ready
+          taints:
+          - effect: NoSchedule
+            value: present
+            key: nvidia.com/gpu
+          - effect: NoSchedule
+            value: present
+            key: nvidia.com/gpu
+          conditions:
+          - reason: KubeletReady
+            lastHeartbeatTime: 2023-10-01T12:00:00Z
+            type: Ready
+            lastTransitionTime: 2023-10-01T12:00:00Z
+            message: Kubelet is ready
+            status: "True"
+          - reason: KubeletReady
+            lastHeartbeatTime: 2023-10-01T12:00:00Z
+            type: Ready
+            lastTransitionTime: 2023-10-01T12:00:00Z
+            message: Kubelet is ready
+            status: "True"
+          labels:
+            kubernetes.io/hostname: node-01
+            node-role.kubernetes.io/worker: ""
+        name: pool-01
+        count: 3
+        id: 123e4567-e89b-12d3-a456-426614174003
+        type: h100-hgx-80gb.8x
+        version: 1.32.1
+      properties:
+        id:
+          description: Unique identifier of the kubernetes node pool
+          example: 123e4567-e89b-12d3-a456-426614174003
+          format: uuid
+          type: string
+          x-go-name: ID
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        name:
+          description: Name of the kubernetes node pool
+          example: pool-01
+          type: string
+        cluster:
+          description: Name of the kubernetes cluster
+          example: cluster-01
+          type: string
+        type:
+          description: Instance type of the kubernetes node pool
+          example: h100-hgx-80gb.8x
+          type: string
+        count:
+          description: Number of nodes in the kubernetes node pool
+          example: 3
+          type: integer
+        version:
+          description: Version of the kubernetes node pool
+          example: 1.32.1
+          type: string
+        nodes:
+          description: List of nodes in the kubernetes node pool
+          items:
+            $ref: '#/components/schemas/KubernetesNode'
+          type: array
+      required:
+      - cluster
+      - count
+      - id
+      - name
+      - type
+      - version
+      type: object
+    KubernetesNode:
+      description: Kubernetes Node
+      example:
+        createdAt: 2023-10-01T12:00:00Z
+        accelerator:
+          product: NVIDIA-H100-80GB-HBM3
+          driverVersion: 550.127.08
+          type: nvidia/gpu
+        instanceID: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        name: node-01
+        kubeletVersion: v1.32.1
+        state: ready
+        taints:
+        - effect: NoSchedule
+          value: present
+          key: nvidia.com/gpu
+        - effect: NoSchedule
+          value: present
+          key: nvidia.com/gpu
+        conditions:
+        - reason: KubeletReady
+          lastHeartbeatTime: 2023-10-01T12:00:00Z
+          type: Ready
+          lastTransitionTime: 2023-10-01T12:00:00Z
+          message: Kubelet is ready
+          status: "True"
+        - reason: KubeletReady
+          lastHeartbeatTime: 2023-10-01T12:00:00Z
+          type: Ready
+          lastTransitionTime: 2023-10-01T12:00:00Z
+          message: Kubelet is ready
+          status: "True"
+        labels:
+          kubernetes.io/hostname: node-01
+          node-role.kubernetes.io/worker: ""
+      properties:
+        name:
+          description: Name of the kubernetes node
+          example: node-01
+          type: string
+        instanceID:
+          description: Unique identifier of the instance backing the kubernetes node
+          format: uuid
+          type: string
+          x-go-name: InstanceID
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        state:
+          description: State of the kubernetes node
+          enum:
+          - ready
+          - not_ready
+          - unknown
+          example: ready
+          type: string
+        kubeletVersion:
+          description: Version of the kubelet running on the kubernetes node
+          example: v1.32.1
+          type: string
+        createdAt:
+          description: Creation time of the kubernetes node
+          example: 2023-10-01T12:00:00Z
+          format: date-time
+          type: string
+        conditions:
+          description: Conditions of the kubernetes node
+          items:
+            $ref: '#/components/schemas/KubernetesNode_conditions_inner'
+          type: array
+        accelerator:
+          $ref: '#/components/schemas/Accelerator'
+        labels:
+          additionalProperties:
+            type: string
+          description: Labels assigned to the kubernetes node
+          example:
+            kubernetes.io/hostname: node-01
+            node-role.kubernetes.io/worker: ""
+          type: object
+        taints:
+          description: Taints applied to the kubernetes node
+          items:
+            $ref: '#/components/schemas/KubernetesNode_taints_inner'
+          type: array
+      required:
+      - conditions
+      - createdAt
+      - instanceID
+      - kubeletVersion
+      - name
+      - state
+      type: object
+    SlurmClustersPostRequest:
+      description: POST request for a Slurm cluster
+      example:
+        name: cluster-01
+        version: v0.40.0
+      properties:
+        name:
+          description: The cluster name.
+          example: cluster-01
+          type: string
+        version:
+          description: The cluster version.
+          example: v0.40.0
+          type: string
+      required:
+      - name
+      type: object
+    SlurmCluster:
+      description: Slurm Cluster
+      example:
+        name: cluster-01
+        id: 123e4567-e89b-12d3-a456-426614174003
+        loginNodes:
+        - name: login-01
+          publicIP: 203.0.113.0
+        - name: login-01
+          publicIP: 203.0.113.0
+        version: 24.05.6
+      properties:
+        id:
+          description: Unique identifier of the slurm cluster
+          example: 123e4567-e89b-12d3-a456-426614174003
+          format: uuid
+          type: string
+          x-go-name: ID
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        name:
+          description: Name of the slurm cluster
+          example: cluster-01
+          type: string
+        version:
+          description: The cluster version.
+          example: 24.05.6
+          type: string
+        loginNodes:
+          description: Login nodes for the cluster
+          items:
+            $ref: '#/components/schemas/SlurmLoginNode'
+          type: array
+      required:
+      - id
+      - name
+      - version
+      type: object
+    SlurmNodePoolPostRequest:
+      description: POST request for a Slurm node pool
+      example:
+        name: pool-01
+        count: 3
+        type: h100-hgx-80gb.8x
+      properties:
+        name:
+          description: Name of the node pool
+          example: pool-01
+          type: string
+        type:
+          description: Instance type of the node pool
+          example: h100-hgx-80gb.8x
+          type: string
+        count:
+          description: Number of nodes in the node pool
+          example: 3
+          type: integer
+      required:
+      - count
+      - name
+      - type
+      type: object
+    SlurmNodePool:
+      description: Slurm Node Pool
+      example:
+        nodes:
+        - instanceID: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          slurmdVersion: 24.05.7
+          name: node-01
+          states:
+          - states
+          - states
+        - instanceID: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          slurmdVersion: 24.05.7
+          name: node-01
+          states:
+          - states
+          - states
+        name: pool-01
+        count: 3
+        id: 123e4567-e89b-12d3-a456-426614174003
+        type: h100-hgx-80gb.8x
+      properties:
+        id:
+          description: Unique identifier of the slurm node pool
+          example: 123e4567-e89b-12d3-a456-426614174003
+          format: uuid
+          type: string
+          x-go-name: ID
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        name:
+          description: Name of the node pool
+          example: pool-01
+          type: string
+        type:
+          description: Instance type of the node pool
+          example: h100-hgx-80gb.8x
+          type: string
+        count:
+          description: Number of nodes in the node pool
+          example: 3
+          type: integer
+        nodes:
+          description: List of nodes in the node pool
+          items:
+            $ref: '#/components/schemas/SlurmNode'
+          type: array
+      required:
+      - count
+      - id
+      - name
+      - nodes
+      - type
+      type: object
+    SlurmNode:
+      description: Slurm Node
+      example:
+        instanceID: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        slurmdVersion: 24.05.7
+        name: node-01
+        states:
+        - states
+        - states
+      properties:
+        name:
+          description: Name of the node
+          example: node-01
+          type: string
+        instanceID:
+          description: Unique identifier of the instance backing the node
+          format: uuid
+          type: string
+          x-go-name: InstanceID
+          x-go-type: uuid.UUID
+          x-go-type-import:
+            path: github.com/google/uuid
+        states:
+          description: States of the node
+          items:
+            type: string
+          type: array
+        slurmdVersion:
+          description: Version of slurmd running on the node
+          example: 24.05.7
+          type: string
+      required:
+      - instanceID
+      - name
+      - slurmdVersion
+      - states
+      type: object
+    SlurmLoginNode:
+      description: Slurm Login nNode
+      example:
+        name: login-01
+        publicIP: 203.0.113.0
+      properties:
+        name:
+          description: Name of the node
+          example: login-01
+          type: string
+        publicIP:
+          description: Public IP address of the node
+          example: 203.0.113.0
+          format: ipv4
+          type: string
+          x-go-name: PublicIP
+          x-go-type: net.IP
+      required:
+      - name
+      type: object
+    Accelerator:
+      description: Hardware details of the kubernetes node
+      example:
+        product: NVIDIA-H100-80GB-HBM3
+        driverVersion: 550.127.08
+        type: nvidia/gpu
+      properties:
+        type:
+          description: Type of the hardware accelerator
+          enum:
+          - nvidia/gpu
+          example: nvidia/gpu
+          type: string
+          x-enum-varnames:
+          - NvidiaGPU
+        product:
+          description: Product name of the accelerator
+          example: NVIDIA-H100-80GB-HBM3
+          type: string
+        driverVersion:
+          description: Version of the driver for the accelerator
+          example: 550.127.08
+          type: string
+      required:
+      - driverVersion
+      - product
+      - type
+      type: object
+    Capabilities:
+      description: List of avaialable capabilities
+      example:
+      - instances:list
+      - slurm:clusters:list
+      items:
+        $ref: '#/components/schemas/Capability'
+      type: array
+    Capability:
+      enum:
+      - instances:list
+      - instances:create
+      - instances:delete
+      - instances:read
+      - instances:update
+      - instances:start
+      - instances:stop
+      - filesystems:list
+      - filesystems:create
+      - filesystems:delete
+      - filesystems:read
+      - filesystems:update
+      - projects:list
+      - projects:create
+      - projects:delete
+      - projects:read
+      - projects:update
+      - kubernetes:clusters:list
+      - kubernetes:clusters:create
+      - kubernetes:clusters:delete
+      - kubernetes:clusters:read
+      - kubernetes:node-pools:list
+      - kubernetes:node-pools:create
+      - kubernetes:node-pools:delete
+      - kubernetes:node-pools:read
+      - kubernetes:credentials:read
+      - slurm:clusters:list
+      - slurm:clusters:read
+      - slurm:clusters:proxy
+      - slurm:node-pools:list
+      - slurm:node-pools:read
+      type: string
+    ListCapacity_200_response_inner:
+      example:
+        name: h100-hgx-80gb.8x
+        capacity: 1
+      properties:
+        name:
+          description: Available instance type
+          example: h100-hgx-80gb.8x
+          type: string
+        capacity:
+          description: Available instance count
+          example: 1
+          type: integer
+      required:
+      - capacity
+      - name
+      type: object
+    KubernetesNode_conditions_inner:
+      example:
+        reason: KubeletReady
+        lastHeartbeatTime: 2023-10-01T12:00:00Z
+        type: Ready
+        lastTransitionTime: 2023-10-01T12:00:00Z
+        message: Kubelet is ready
+        status: "True"
+      properties:
+        type:
+          description: Type of the condition
+          example: Ready
+          type: string
+        status:
+          description: Status of the condition
+          enum:
+          - "True"
+          - "False"
+          - Unknown
+          type: string
+        lastHeartbeatTime:
+          description: Last time the condition was updated
+          example: 2023-10-01T12:00:00Z
+          format: date-time
+          type: string
+        lastTransitionTime:
+          description: Last time the condition transitioned from one status to another
+          example: 2023-10-01T12:00:00Z
+          format: date-time
+          type: string
+        reason:
+          description: Reason for the condition's last transition
+          example: KubeletReady
+          type: string
+        message:
+          description: Human-readable message indicating details about the condition
+          example: Kubelet is ready
+          type: string
+      type: object
+      x-go-type: corev1.NodeCondition
+      x-go-type-import:
+        path: k8s.io/api/core/v1
+        name: corev1
+    KubernetesNode_taints_inner:
+      example:
+        effect: NoSchedule
+        value: present
+        key: nvidia.com/gpu
+      properties:
+        key:
+          description: Key of the taint
+          example: nvidia.com/gpu
+          type: string
+        value:
+          description: Value of the taint
+          example: present
+          type: string
+        effect:
+          description: Effect of the taint
+          enum:
+          - NoSchedule
+          - PreferNoSchedule
+          - NoExecute
+          example: NoSchedule
+          type: string
+      type: object
+      x-go-type: corev1.Taint
+      x-go-type-import:
+        path: k8s.io/api/core/v1
+        name: corev1
+  securitySchemes:
+    bearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
