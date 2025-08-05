@@ -35,7 +35,7 @@ func (c *LambdaLabsClient) GetCloudProviderID() v1.CloudProviderID {
 }
 
 // MakeClient creates a new client instance
-func (c *LambdaLabsClient) MakeClient(ctx context.Context, location string) (v1.CloudClient, error) {
+func (c *LambdaLabsClient) MakeClient(_ context.Context, _ string) (v1.CloudClient, error) {
 	// Lambda Labs doesn't require location-specific clients
 	return c, nil
 }

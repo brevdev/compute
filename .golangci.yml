@@ -1,121 +1,109 @@
 run:
-  timeout: 5m
-  go: "1.23"
-  modules-download-mode: readonly
-
+  build-tags:
+    - tasks
 linters-settings:
-  govet:
-    check-shadowing: true
+  goimports:
+    local-prefixes: github.com/brevdev/dev-plane
+  revive:
+    min-confidence: 0.8
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      # - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
   gocyclo:
     min-complexity: 15
-  maligned:
-    suggest-new: true
-  dupl:
-    threshold: 100
-  goconst:
-    min-len: 2
-    min-occurrences: 3
   misspell:
     locale: US
-  lll:
-    line-length: 140
-  goimports:
-    local-prefixes: github.com/brevdev/compute
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - dupImport # https://github.com/go-critic/go-critic/issues/845
-      - ifElseChain
-      - octalLiteral
-      - whyNoLint
-      - wrapperFunc
+  nolintlint:
+    allow-leading-space: false # require machine-readable nolint directives (with no leading space)
+    allow-unused: false # report any unused nolint directives
+    require-explanation: true # require an explanation for nolint directives
+    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
+  funlen:
+    lines: 100
+  errcheck:
+    exclude-functions:
+      - (*encoding/json.Encoder).Encode
+  wrapcheck:
+    ignoreSigs:
+      - .WrapAndTrace
+      - .Errorf
+      - .Wrap
+      - .New
+      - .ValidateStruct
+      - .Permanent
+      - .Decode
+  stylecheck:
+    checks: ["all", "-ST1020", "-ST1000", "-ST1021"]
 
 linters:
+  # please, do not use `enable-all`: it's deprecated and will be removed soon.
+  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
   disable-all: true
   enable:
-    - bodyclose
-    - deadcode
-    - depguard
-    - dogsled
-    - dupl
     - errcheck
-    - exportloopref
-    - exhaustive
-    - forbidigo
+    # - gosimple # don't like
+    - govet
+    - ineffassign
+    # - staticcheck # broken in collections pkg?
+    - typecheck
+    - bodyclose
+    - unused
+    # - depguard
+    - dupl
+    - copyloopvar
+    - forcetypeassert
     - funlen
-    - gochecknoinits
+    # - gci # don't like
+    - gocognit
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
+    # - godot # don't like
     - gofumpt
-    - goheader
-    - goimports
-    - gomnd
-    - gomodguard
+    - revive
+    # - gomnd # don't like
     - goprintffuncname
     - gosec
-    - gosimple
-    - govet
-    - ineffassign
-    - lll
-    - makezero
+    # - ifshort # don't like
     - misspell
-    - nakedret
     - noctx
     - nolintlint
-    - prealloc
-    - predeclared
-    - promlinter
-    - revive
-    - rowserrcheck
-    - staticcheck
-    - structcheck
+    - rowserrcheck # broken with generics
+    - sqlclosecheck # broken with generics
     - stylecheck
-    - thelper
+    # - thelper
     - tparallel
-    - typecheck
     - unconvert
     - unparam
-    - unused
-    - varcheck
     - whitespace
-    - wrapcheck
-
+    # - errorlint
+    # - goerr113
+    # - wrapcheck
 issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gomnd
-        - goconst
-        - funlen
-        - gocyclo
-        - dupl
-        - gocritic
-        - gosec
-        - lll
-        - maligned
-        - noctx
-        - prealloc
-        - predeclared
-        - revive
-        - structcheck
-        - thelper
-        - tparallel
-        - unconvert
-        - unparam
-        - varcheck
-        - wrapcheck
-    - path: pkg/v1/
-      linters:
-        - gosec # Disable security checks for public API
-    - path: internal/
-      linters:
-        - gosec # Disable security checks for internal code
-  max-issues-per-linter: 0
-  max-same-issues: 0 
+  # enable issues excluded by default
+  exclude-use-default: false
+  exclude:
+    - composites
+  exclude-dirs:
+    - internal/lambdalabs/gen

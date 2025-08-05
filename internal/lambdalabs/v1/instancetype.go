@@ -10,7 +10,7 @@ import (
 
 // GetInstanceTypes retrieves available instance types from Lambda Labs
 // Supported via: GET /api/v1/instance-types
-func (c *LambdaLabsClient) GetInstanceTypes(ctx context.Context, args v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
+func (c *LambdaLabsClient) GetInstanceTypes(_ context.Context, _ v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
 	// TODO: Implement Lambda Labs instance type retrieval
 	// This would typically involve:
 	// 1. Calling Lambda Labs API to get available instance types
@@ -48,6 +48,6 @@ func (c *LambdaLabsClient) GetInstanceTypePollTime() time.Duration {
 
 // GetLocations retrieves available locations from Lambda Labs
 // UNSUPPORTED: No location listing endpoints found in Lambda Labs API
-func (c *LambdaLabsClient) GetLocations(ctx context.Context, args v1.GetLocationsArgs) ([]v1.Location, error) {
+func (c *LambdaLabsClient) GetLocations(_ context.Context, _ v1.GetLocationsArgs) ([]v1.Location, error) {
 	return nil, v1.ErrNotImplemented
 }

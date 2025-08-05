@@ -8,7 +8,7 @@ import (
 
 // GetCapabilities returns the capabilities of Lambda Labs
 // Based on API documentation at https://cloud.lambda.ai/api/v1/openapi.json
-func (c *LambdaLabsClient) GetCapabilities(ctx context.Context) (v1.Capabilities, error) {
+func (c *LambdaLabsClient) GetCapabilities(_ context.Context) (v1.Capabilities, error) {
 	capabilities := v1.Capabilities{
 		// SUPPORTED FEATURES (with API evidence):
 
