@@ -8,6 +8,8 @@ import (
 	"github.com/brevdev/cloud/pkg/v1"
 )
 
+const CloudProviderID = "fluidstack"
+
 // FluidStackCredential implements the CloudCredential interface for FluidStack
 type FluidStackCredential struct {
 	RefID  string
@@ -35,12 +37,12 @@ func (c *FluidStackCredential) GetAPIType() v1.APIType {
 
 // GetCloudProviderID returns the cloud provider ID for FluidStack
 func (c *FluidStackCredential) GetCloudProviderID() v1.CloudProviderID {
-	return "fluidstack"
+	return CloudProviderID
 }
 
 // GetTenantID returns the tenant ID for FluidStack
 func (c *FluidStackCredential) GetTenantID() (string, error) {
-	return fmt.Sprintf("fluidstack-%x", sha256.Sum256([]byte(c.APIKey))), nil
+	return fmt.Sprintf("%s-%x", CloudProviderID, sha256.Sum256([]byte(c.APIKey))), nil
 }
 
 // GetCapabilities returns the capabilities for FluidStack
@@ -83,7 +85,7 @@ func (c *FluidStackClient) GetAPIType() v1.APIType {
 
 // GetCloudProviderID returns the cloud provider ID for FluidStack
 func (c *FluidStackClient) GetCloudProviderID() v1.CloudProviderID {
-	return "fluidstack"
+	return CloudProviderID
 }
 
 // MakeClient creates a new client instance
