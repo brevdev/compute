@@ -41,12 +41,14 @@ Validation tests run automatically:
 
 ```go
 func TestValidationFunctions(t *testing.T) {
+    apiKey := os.Getenv("YOUR_PROVIDER_API_KEY")
+    if apiKey == "" {
+        t.Skip("YOUR_PROVIDER_API_KEY not set, skipping YourProvider validation tests")
+    }
+
     config := validation.ProviderConfig{
         ProviderName: "YourProvider",
-        EnvVarName:   "YOUR_PROVIDER_API_KEY",
-        ClientFactory: func(apiKey string) v1.CloudClient {
-            return NewYourProviderClient("validation-test", apiKey)
-        },
+        Credential:   NewYourProviderCredential("validation-test", apiKey),
     }
     validation.RunValidationSuite(t, config)
 }
@@ -61,9 +63,9 @@ func TestValidationFunctions(t *testing.T) {
 The validation tests use a shared package at `internal/validation/` that provides:
 - `RunValidationSuite()` - Tests all validation functions from pkg/v1/
 - `RunInstanceLifecycleValidation()` - Tests instance lifecycle operations
-- `ProviderConfig` - Configuration for provider-specific setup
+- `ProviderConfig` - Configuration for provider-specific setup using CloudCredential
 
-This approach eliminates code duplication and ensures consistent validation testing across all providers.
+The `ProviderConfig` uses the existing `CloudCredential` interface which acts as a factory for `CloudClient` instances. This approach eliminates code duplication and ensures consistent validation testing across all providers while leveraging the existing credential abstraction.
 
 ## Test Structure
 

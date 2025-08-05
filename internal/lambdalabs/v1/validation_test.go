@@ -1,31 +1,35 @@
 package v1
 
 import (
+	"os"
 	"testing"
 
 	"github.com/brevdev/cloud/internal/validation"
-	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
 func TestValidationFunctions(t *testing.T) {
+	apiKey := os.Getenv("LAMBDALABS_API_KEY")
+	if apiKey == "" {
+		t.Skip("LAMBDALABS_API_KEY not set, skipping LambdaLabs validation tests")
+	}
+
 	config := validation.ProviderConfig{
 		ProviderName: "LambdaLabs",
-		EnvVarName:   "LAMBDALABS_API_KEY",
-		ClientFactory: func(apiKey string) v1.CloudClient {
-			return NewLambdaLabsClient("validation-test", apiKey)
-		},
+		Credential:   NewLambdaLabsCredential("validation-test", apiKey),
 	}
 
 	validation.RunValidationSuite(t, config)
 }
 
 func TestInstanceLifecycleValidation(t *testing.T) {
+	apiKey := os.Getenv("LAMBDALABS_API_KEY")
+	if apiKey == "" {
+		t.Skip("LAMBDALABS_API_KEY not set, skipping LambdaLabs validation tests")
+	}
+
 	config := validation.ProviderConfig{
 		ProviderName: "LambdaLabs",
-		EnvVarName:   "LAMBDALABS_API_KEY",
-		ClientFactory: func(apiKey string) v1.CloudClient {
-			return NewLambdaLabsClient("validation-test", apiKey)
-		},
+		Credential:   NewLambdaLabsCredential("validation-test", apiKey),
 	}
 
 	validation.RunInstanceLifecycleValidation(t, config)

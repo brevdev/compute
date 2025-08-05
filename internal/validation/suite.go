@@ -2,7 +2,6 @@ package validation
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -11,9 +10,8 @@ import (
 )
 
 type ProviderConfig struct {
-	ProviderName  string
-	EnvVarName    string
-	ClientFactory func(apiKey string) v1.CloudClient
+	ProviderName string
+	Credential   v1.CloudCredential
 }
 
 func RunValidationSuite(t *testing.T, config ProviderConfig) {
@@ -21,14 +19,13 @@ func RunValidationSuite(t *testing.T, config ProviderConfig) {
 		t.Skip("Skipping validation tests in short mode")
 	}
 
-	apiKey := os.Getenv(config.EnvVarName)
-	if apiKey == "" {
-		t.Skipf("%s not set, skipping %s validation tests", config.EnvVarName, config.ProviderName)
-	}
-
-	client := config.ClientFactory(apiKey)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
+
+	client, err := config.Credential.MakeClient(ctx, "")
+	if err != nil {
+		t.Skipf("Failed to create client for %s: %v", config.ProviderName, err)
+	}
 
 	t.Run("ValidateGetLocations", func(t *testing.T) {
 		err := v1.ValidateGetLocations(ctx, client)
@@ -61,14 +58,13 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 		t.Skip("Skipping validation tests in short mode")
 	}
 
-	apiKey := os.Getenv(config.EnvVarName)
-	if apiKey == "" {
-		t.Skipf("%s not set, skipping %s validation tests", config.EnvVarName, config.ProviderName)
-	}
-
-	client := config.ClientFactory(apiKey)
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
+
+	client, err := config.Credential.MakeClient(ctx, "")
+	if err != nil {
+		t.Skipf("Failed to create client for %s: %v", config.ProviderName, err)
+	}
 
 	types, err := client.GetInstanceTypes(ctx, v1.GetInstanceTypeArgs{})
 	require.NoError(t, err)
