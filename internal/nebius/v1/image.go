@@ -6,6 +6,6 @@ import (
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
-func (c *NebiusClient) GetImages(_ context.Context, args v1.GetImageArgs) ([]v1.Image, error) {
+func (c *NebiusClient) GetImages(_ context.Context, _ v1.GetImageArgs) ([]v1.Image, error) {
 	return nil, v1.ErrNotImplemented
 }

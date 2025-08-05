@@ -6,31 +6,31 @@ import (
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
-func (c *NebiusClient) CreateInstance(_ context.Context, attrs v1.CreateInstanceAttrs) (*v1.Instance, error) {
+func (c *NebiusClient) CreateInstance(_ context.Context, _ v1.CreateInstanceAttrs) (*v1.Instance, error) {
 	return nil, v1.ErrNotImplemented
 }
 
-func (c *NebiusClient) GetInstance(_ context.Context, id v1.CloudProviderInstanceID) (*v1.Instance, error) {
+func (c *NebiusClient) GetInstance(_ context.Context, _ v1.CloudProviderInstanceID) (*v1.Instance, error) {
 	return nil, v1.ErrNotImplemented
 }
 
-func (c *NebiusClient) TerminateInstance(_ context.Context, instanceID v1.CloudProviderInstanceID) error {
+func (c *NebiusClient) TerminateInstance(_ context.Context, _ v1.CloudProviderInstanceID) error {
 	return v1.ErrNotImplemented
 }
 
-func (c *NebiusClient) ListInstances(_ context.Context, args v1.ListInstancesArgs) ([]v1.Instance, error) {
+func (c *NebiusClient) ListInstances(_ context.Context, _ v1.ListInstancesArgs) ([]v1.Instance, error) {
 	return nil, v1.ErrNotImplemented
 }
 
-func (c *NebiusClient) StopInstance(_ context.Context, instanceID v1.CloudProviderInstanceID) error {
+func (c *NebiusClient) StopInstance(_ context.Context, _ v1.CloudProviderInstanceID) error {
 	return v1.ErrNotImplemented
 }
 
-func (c *NebiusClient) StartInstance(_ context.Context, instanceID v1.CloudProviderInstanceID) error {
+func (c *NebiusClient) StartInstance(_ context.Context, _ v1.CloudProviderInstanceID) error {
 	return v1.ErrNotImplemented
 }
 
-func (c *NebiusClient) RebootInstance(_ context.Context, instanceID v1.CloudProviderInstanceID) error {
+func (c *NebiusClient) RebootInstance(_ context.Context, _ v1.CloudProviderInstanceID) error {
 	return v1.ErrNotImplemented
 }
 

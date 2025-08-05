@@ -6,6 +6,6 @@ import (
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
-func (c *NebiusClient) GetLocations(_ context.Context, args v1.GetLocationsArgs) ([]v1.Location, error) {
+func (c *NebiusClient) GetLocations(_ context.Context, _ v1.GetLocationsArgs) ([]v1.Location, error) {
 	return nil, v1.ErrNotImplemented
 }

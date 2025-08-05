@@ -7,7 +7,7 @@ import (
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
-func (c *NebiusClient) GetInstanceTypes(_ context.Context, args v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
+func (c *NebiusClient) GetInstanceTypes(_ context.Context, _ v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
 	return nil, v1.ErrNotImplemented
 }
 
