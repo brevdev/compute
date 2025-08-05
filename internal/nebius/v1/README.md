@@ -20,7 +20,7 @@ Based on the Nebius API documentation, the following features are **SUPPORTED**:
 
 ### Instance Updates
 - ✅ **Update Instance Tags**: Maps to `UpdateInstanceTags` in CloudClient interface
-- ✅ **Change Instance Type**: Maps to `ChangeInstanceType` in CloudClient interface (if supported by Nebius API)
+- ✅ **Change Instance Type**: Maps to `ChangeInstanceType` in CloudClient interface via `ResourcesSpec.preset` field in `InstanceService.Update`
 
 ### GPU Cluster Management
 - ✅ **Create GPU Cluster**: `GpuClusterService.Create` in compute/v1/gpu_cluster_service.proto
@@ -43,7 +43,6 @@ The following features are **NOT SUPPORTED** (no clear API endpoints found):
 ### Instance Operations
 - ❌ **Reboot Instance**: No reboot endpoint found in instance_service.proto
 - ❌ **General Instance Updates**: Nebius InstanceService.Update exists but most InstanceSpec fields are immutable; only specific updates like tags and instance type are supported through dedicated CloudClient methods
-- ❌ **Change Instance Type**: No instance type modification endpoint clearly documented
 
 ### Volume Management
 - ❌ **Resize Instance Volume**: Volume resizing not clearly documented
@@ -90,3 +89,4 @@ Nebius AI Cloud is known for:
 - [ ] Add logging and monitoring
 - [ ] Add comprehensive testing
 - [ ] Investigate VPC integration for networking features
+- [ ] Verify instance type changes work correctly via ResourcesSpec.preset field
