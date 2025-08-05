@@ -5,7 +5,7 @@
 can you take a look at the file structure in @v1 this is supposed to be the reference/interface for providers. can you replicate the file structure in @lambdalabs ? I just want the file structure and maybe some stubs if they make sense.
 ```
 
-
+```
 Please analyze the Lambda Labs @lambdalabs  implementation in and research their actual API capabilities to determine which features are supported vs unsupported.
 
 **Required Research Steps:**

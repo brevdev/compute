@@ -63,32 +63,6 @@ func (c *LambdaLabsClient) RebootInstance(ctx context.Context, instanceID v1.Clo
 	return fmt.Errorf("not implemented")
 }
 
-// UNSUPPORTED OPERATIONS (no API endpoints found):
-
-// StopInstance stops an instance
-// UNSUPPORTED: No stop endpoint found in Lambda Labs API
-func (c *LambdaLabsClient) StopInstance(ctx context.Context, instanceID v1.CloudProviderInstanceID) error {
-	return v1.ErrNotImplemented
-}
-
-// StartInstance starts an instance
-// UNSUPPORTED: No start endpoint found in Lambda Labs API
-func (c *LambdaLabsClient) StartInstance(ctx context.Context, instanceID v1.CloudProviderInstanceID) error {
-	return v1.ErrNotImplemented
-}
-
-// ChangeInstanceType changes the instance type
-// UNSUPPORTED: No instance type modification endpoint found in Lambda Labs API
-func (c *LambdaLabsClient) ChangeInstanceType(ctx context.Context, instanceID v1.CloudProviderInstanceID, instanceType string) error {
-	return v1.ErrNotImplemented
-}
-
-// UpdateInstanceTags updates instance tags
-// UNSUPPORTED: No tagging endpoints found in Lambda Labs API
-func (c *LambdaLabsClient) UpdateInstanceTags(ctx context.Context, args v1.UpdateInstanceTagsArgs) error {
-	return v1.ErrNotImplemented
-}
-
 // MergeInstanceForUpdate merges instance data for updates
 func (c *LambdaLabsClient) MergeInstanceForUpdate(currInst v1.Instance, newInst v1.Instance) v1.Instance {
 	// TODO: Implement instance merging logic
