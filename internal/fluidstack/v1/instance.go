@@ -30,7 +30,10 @@ func (c *FluidStackClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 		req.SetTags(tags)
 	}
 
-	resp, _, err := c.client.InstancesAPI.CreateInstance(projectCtx).XPROJECTID(c.projectID).InstancesPostRequest(req).Execute()
+	resp, httpResp, err := c.client.InstancesAPI.CreateInstance(projectCtx).XPROJECTID(c.projectID).InstancesPostRequest(req).Execute()
+	if httpResp != nil && httpResp.Body != nil {
+		defer func() { _ = httpResp.Body.Close() }()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to create instance: %w", err)
 	}
@@ -46,7 +49,10 @@ func (c *FluidStackClient) GetInstance(ctx context.Context, instanceID v1.CloudP
 	authCtx := c.makeAuthContext(ctx)
 	projectCtx := c.makeProjectContext(authCtx)
 
-	resp, _, err := c.client.InstancesAPI.GetInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
+	resp, httpResp, err := c.client.InstancesAPI.GetInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
+	if httpResp != nil && httpResp.Body != nil {
+		defer func() { _ = httpResp.Body.Close() }()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get instance: %w", err)
 	}
@@ -62,7 +68,10 @@ func (c *FluidStackClient) TerminateInstance(ctx context.Context, instanceID v1.
 	authCtx := c.makeAuthContext(ctx)
 	projectCtx := c.makeProjectContext(authCtx)
 
-	_, err := c.client.InstancesAPI.DeleteInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
+	httpResp, err := c.client.InstancesAPI.DeleteInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
+	if httpResp != nil && httpResp.Body != nil {
+		defer func() { _ = httpResp.Body.Close() }()
+	}
 	if err != nil {
 		return fmt.Errorf("failed to terminate instance: %w", err)
 	}
@@ -70,11 +79,14 @@ func (c *FluidStackClient) TerminateInstance(ctx context.Context, instanceID v1.
 	return nil
 }
 
-func (c *FluidStackClient) ListInstances(ctx context.Context, args v1.ListInstancesArgs) ([]v1.Instance, error) {
+func (c *FluidStackClient) ListInstances(ctx context.Context, _ v1.ListInstancesArgs) ([]v1.Instance, error) {
 	authCtx := c.makeAuthContext(ctx)
 	projectCtx := c.makeProjectContext(authCtx)
 
-	resp, _, err := c.client.InstancesAPI.ListInstances(projectCtx).XPROJECTID(c.projectID).Execute()
+	resp, httpResp, err := c.client.InstancesAPI.ListInstances(projectCtx).XPROJECTID(c.projectID).Execute()
+	if httpResp != nil && httpResp.Body != nil {
+		defer func() { _ = httpResp.Body.Close() }()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to list instances: %w", err)
 	}
@@ -91,14 +103,20 @@ func (c *FluidStackClient) RebootInstance(ctx context.Context, instanceID v1.Clo
 	authCtx := c.makeAuthContext(ctx)
 	projectCtx := c.makeProjectContext(authCtx)
 
-	_, err := c.client.InstancesAPI.StopInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
+	httpResp, err := c.client.InstancesAPI.StopInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
+	if httpResp != nil && httpResp.Body != nil {
+		defer func() { _ = httpResp.Body.Close() }()
+	}
 	if err != nil {
 		return fmt.Errorf("failed to stop instance for reboot: %w", err)
 	}
 
 	time.Sleep(5 * time.Second)
 
-	_, err = c.client.InstancesAPI.StartInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
+	httpResp2, err := c.client.InstancesAPI.StartInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
+	if httpResp2 != nil && httpResp2.Body != nil {
+		defer func() { _ = httpResp2.Body.Close() }()
+	}
 	if err != nil {
 		return fmt.Errorf("failed to start instance after reboot: %w", err)
 	}

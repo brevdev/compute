@@ -13,21 +13,21 @@ import (
 	"github.com/brevdev/cloud/pkg/v1"
 )
 
-func (c *FluidStackClient) GetInstanceTypes(ctx context.Context, args v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
+func (c *FluidStackClient) GetInstanceTypes(ctx context.Context, _ v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
 	authCtx := c.makeAuthContext(ctx)
 	projectCtx := c.makeProjectContext(authCtx)
 
-	resp, _, err := c.client.InstanceTypesAPI.ListInstanceTypes(projectCtx).Execute()
+	resp, httpResp, err := c.client.InstanceTypesAPI.ListInstanceTypes(projectCtx).Execute()
+	if httpResp != nil && httpResp.Body != nil {
+		defer func() { _ = httpResp.Body.Close() }()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get instance types: %w", err)
 	}
 
 	var instanceTypes []v1.InstanceType
 	for _, fsInstanceType := range resp {
-		instanceType, err := convertFluidStackInstanceTypeToV1InstanceType("", fsInstanceType, true)
-		if err != nil {
-			continue
-		}
+		instanceType := convertFluidStackInstanceTypeToV1InstanceType("", fsInstanceType, true)
 		instanceTypes = append(instanceTypes, instanceType)
 	}
 
@@ -38,11 +38,14 @@ func (c *FluidStackClient) GetInstanceTypePollTime() time.Duration {
 	return 5 * time.Minute
 }
 
-func (c *FluidStackClient) GetLocations(ctx context.Context, args v1.GetLocationsArgs) ([]v1.Location, error) {
+func (c *FluidStackClient) GetLocations(ctx context.Context, _ v1.GetLocationsArgs) ([]v1.Location, error) {
 	authCtx := c.makeAuthContext(ctx)
 	projectCtx := c.makeProjectContext(authCtx)
 
-	resp, _, err := c.client.CapacityAPI.ListCapacity(projectCtx).Execute()
+	resp, httpResp, err := c.client.CapacityAPI.ListCapacity(projectCtx).Execute()
+	if httpResp != nil && httpResp.Body != nil {
+		defer func() { _ = httpResp.Body.Close() }()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get locations: %w", err)
 	}
@@ -62,16 +65,16 @@ func (c *FluidStackClient) GetLocations(ctx context.Context, args v1.GetLocation
 	return locations, nil
 }
 
-func convertFluidStackInstanceTypeToV1InstanceType(location string, fsInstanceType openapi.InstanceType, isAvailable bool) (v1.InstanceType, error) {
+func convertFluidStackInstanceTypeToV1InstanceType(location string, fsInstanceType openapi.InstanceType, isAvailable bool) v1.InstanceType {
 	var gpus []v1.GPU
-	
+
 	if fsInstanceType.GpuCount != nil && *fsInstanceType.GpuCount > 0 {
 		count := int(*fsInstanceType.GpuCount)
 		model := "GPU"
 		if fsInstanceType.GpuModel != nil {
 			model = *fsInstanceType.GpuModel
 		}
-		
+
 		for i := 0; i < count; i++ {
 			gpus = append(gpus, v1.GPU{
 				Name: model,
@@ -88,18 +91,21 @@ func convertFluidStackInstanceTypeToV1InstanceType(location string, fsInstanceTy
 		}
 	}
 
-	vcpus := int(fsInstanceType.Cpu)
+	vcpus := fsInstanceType.Cpu
+	if vcpus < 0 {
+		vcpus = 0
+	}
 
 	price, _ := currency.NewAmount("0", "USD")
 
 	return v1.InstanceType{
-		Type:           fsInstanceType.Name,
-		VCPU:           int32(vcpus),
-		Memory:         ram,
-		SupportedGPUs:  gpus,
-		BasePrice:      &price,
-		IsAvailable:    isAvailable,
-		Location:       location,
-		Provider:       CloudProviderID,
-	}, nil
+		Type:          fsInstanceType.Name,
+		VCPU:          vcpus,
+		Memory:        ram,
+		SupportedGPUs: gpus,
+		BasePrice:     &price,
+		IsAvailable:   isAvailable,
+		Location:      location,
+		Provider:      CloudProviderID,
+	}
 }
