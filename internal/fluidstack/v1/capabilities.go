@@ -12,6 +12,7 @@ func (c *FluidStackClient) GetCapabilities(_ context.Context) (v1.Capabilities, 
 		v1.CapabilityTerminateInstance,
 		v1.CapabilityStopStartInstance,
 		v1.CapabilityTags,
+		v1.CapabilityInstanceUserData,
 	}
 
 	return capabilities, nil

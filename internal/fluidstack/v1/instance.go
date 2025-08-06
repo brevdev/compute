@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"fmt"
-	"time"
 
 	openapi "github.com/brevdev/cloud/internal/fluidstack/gen/fluidstack"
 	"github.com/brevdev/cloud/pkg/v1"
@@ -99,29 +98,8 @@ func (c *FluidStackClient) ListInstances(ctx context.Context, _ v1.ListInstances
 	return instances, nil
 }
 
-func (c *FluidStackClient) RebootInstance(ctx context.Context, instanceID v1.CloudProviderInstanceID) error {
-	authCtx := c.makeAuthContext(ctx)
-	projectCtx := c.makeProjectContext(authCtx)
-
-	httpResp, err := c.client.InstancesAPI.StopInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
-	if httpResp != nil && httpResp.Body != nil {
-		defer func() { _ = httpResp.Body.Close() }()
-	}
-	if err != nil {
-		return fmt.Errorf("failed to stop instance for reboot: %w", err)
-	}
-
-	time.Sleep(5 * time.Second)
-
-	httpResp2, err := c.client.InstancesAPI.StartInstance(projectCtx, string(instanceID)).XPROJECTID(c.projectID).Execute()
-	if httpResp2 != nil && httpResp2.Body != nil {
-		defer func() { _ = httpResp2.Body.Close() }()
-	}
-	if err != nil {
-		return fmt.Errorf("failed to start instance after reboot: %w", err)
-	}
-
-	return nil
+func (c *FluidStackClient) RebootInstance(_ context.Context, _ v1.CloudProviderInstanceID) error {
+	return v1.ErrNotImplemented
 }
 
 func (c *FluidStackClient) MergeInstanceForUpdate(currInst v1.Instance, _ v1.Instance) v1.Instance {
