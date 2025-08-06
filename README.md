@@ -48,6 +48,12 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 - Cloud provider implementations are internal-only for now
 - `v2` will be shaped by feedback and contributions from the community
 
+## Platform Support
+
+- **Operating System**: Currently supports Ubuntu 22 only
+- **Architecture**: Designed for GPU-accelerated compute workloads
+- **Access Method**: Requires SSH server and SSH key-based authentication
+
 ---
 
 ## Who This Is For
