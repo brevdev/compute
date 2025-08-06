@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,48 +21,36 @@ func (c *LambdaLabsClient) GetInstanceTypes(ctx context.Context, args v1.GetInst
 		defer func() { _ = httpResp.Body.Close() }()
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to get instance types: %w", err)
+		return nil, handleLLErrToCloudErr(err)
 	}
 
 	var instanceTypes []v1.InstanceType
-	for _, llInstanceTypeData := range resp.Data {
-		for _, region := range llInstanceTypeData.RegionsWithCapacityAvailable {
-			instanceType, err := convertLambdaLabsInstanceTypeToV1InstanceType(
-				region.Name,
-				llInstanceTypeData.InstanceType,
-				true,
-			)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert instance type: %w", err)
-			}
-			instanceTypes = append(instanceTypes, instanceType)
-		}
-	}
 
-	if len(args.Locations) > 0 && !args.Locations.IsAll() {
-		filtered := make([]v1.InstanceType, 0)
-		for _, it := range instanceTypes {
-			for _, loc := range args.Locations {
-				if it.Location == loc {
-					filtered = append(filtered, it)
-					break
-				}
-			}
+	for instanceTypeName, instanceTypeData := range resp.Data {
+		if strings.Contains(instanceTypeName, "gh") {
+			continue
 		}
-		instanceTypes = filtered
-	}
 
-	if len(args.InstanceTypes) > 0 {
-		filtered := make([]v1.InstanceType, 0)
-		for _, it := range instanceTypes {
-			for _, itName := range args.InstanceTypes {
-				if it.Type == itName {
-					filtered = append(filtered, it)
-					break
-				}
-			}
+		if len(args.InstanceTypes) > 0 && !contains(args.InstanceTypes, instanceTypeName) {
+			continue
 		}
-		instanceTypes = filtered
+
+		availableRegions := make(map[string]bool)
+		for _, region := range instanceTypeData.RegionsWithCapacityAvailable {
+			availableRegions[region.Name] = true
+		}
+
+	for _, region := range instanceTypeData.RegionsWithCapacityAvailable {
+		if len(args.Locations) > 0 && !args.Locations.IsAll() && !containsLocation(args.Locations, region.Name) {
+			continue
+		}
+
+		v1InstanceType, err := convertLambdaLabsInstanceTypeToV1InstanceType(region.Name, instanceTypeData.InstanceType, true)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert instance type: %w", err)
+		}
+		instanceTypes = append(instanceTypes, v1InstanceType)
+	}
 	}
 
 	return instanceTypes, nil
@@ -115,34 +101,6 @@ func convertLambdaLabsInstanceTypeToV1InstanceType(location string, llInstanceTy
 	return instanceType, nil
 }
 
-func parseGPUFromDescription(description string) v1.GPU {
-	countRegex := regexp.MustCompile(`(\d+)x`)
-	memoryRegex := regexp.MustCompile(`(\d+) GB`)
-	nameRegex := regexp.MustCompile(`x (.*?) \(`)
-
-	var gpu v1.GPU
-
-	if matches := countRegex.FindStringSubmatch(description); len(matches) > 1 {
-		if count, err := strconv.ParseInt(matches[1], 10, 32); err == nil {
-			gpu.Count = int32(count)
-		}
-	}
-
-	if matches := memoryRegex.FindStringSubmatch(description); len(matches) > 1 {
-		if memory, err := strconv.Atoi(matches[1]); err == nil {
-			gpu.Memory = units.GiB * units.Base2Bytes(memory)
-		}
-	}
-
-	if matches := nameRegex.FindStringSubmatch(description); len(matches) > 1 {
-		gpu.Name = strings.TrimSpace(matches[1])
-		gpu.Type = gpu.Name
-	}
-
-	gpu.Manufacturer = "NVIDIA"
-
-	return gpu
-}
 
 const lambdaLocationsData = `[
     {"location_name": "us-west-1", "description": "California, USA", "country": "USA"},
@@ -188,4 +146,31 @@ func (c *LambdaLabsClient) GetLocations(_ context.Context, _ v1.GetLocationsArgs
 	}
 
 	return locations, nil
+}
+
+func getLocations() []LambdaLocation {
+	var locations []LambdaLocation
+	err := json.Unmarshal([]byte(lambdaLocationsData), &locations)
+	if err != nil {
+		return []LambdaLocation{}
+	}
+	return locations
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
+
+func containsLocation(locations v1.LocationsFilter, location string) bool {
+	for _, loc := range locations {
+		if loc == location {
+			return true
+		}
+	}
+	return false
 }

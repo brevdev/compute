@@ -3,9 +3,12 @@ package v1
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/alecthomas/units"
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
@@ -21,17 +24,9 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 	}
 
 	if attrs.PublicKey != "" {
-		request := openapi.AddSSHKeyRequest{
-			Name:      keyPairName,
-			PublicKey: &attrs.PublicKey,
-		}
-
-		_, resp, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(request).Execute()
-		if resp != nil {
-			defer func() { _ = resp.Body.Close() }()
-		}
-		if err != nil && !strings.Contains(err.Error(), "name must be unique") {
-			return nil, fmt.Errorf("failed to add SSH key: %w", err)
+		err := c.addSSHKeyIdempotent(ctx, keyPairName, attrs.PublicKey)
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -60,7 +55,7 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 		defer func() { _ = httpResp.Body.Close() }()
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to launch instance: %w", err)
+		return nil, handleLLErrToCloudErr(err)
 	}
 
 	if len(resp.Data.InstanceIds) != 1 {
@@ -79,7 +74,7 @@ func (c *LambdaLabsClient) GetInstance(ctx context.Context, instanceID v1.CloudP
 		defer func() { _ = httpResp.Body.Close() }()
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to get instance: %w", err)
+		return nil, handleLLErrToCloudErr(err)
 	}
 
 	return convertLambdaLabsInstanceToV1Instance(resp.Data), nil
@@ -97,7 +92,7 @@ func (c *LambdaLabsClient) TerminateInstance(ctx context.Context, instanceID v1.
 		defer func() { _ = httpResp.Body.Close() }()
 	}
 	if err != nil {
-		return fmt.Errorf("failed to terminate instance: %w", err)
+		return handleLLErrToCloudErr(err)
 	}
 
 	return nil
@@ -111,7 +106,7 @@ func (c *LambdaLabsClient) ListInstances(ctx context.Context, _ v1.ListInstances
 		defer func() { _ = httpResp.Body.Close() }()
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to list instances: %w", err)
+		return nil, handleLLErrToCloudErr(err)
 	}
 
 	instances := make([]v1.Instance, 0, len(resp.Data))
@@ -121,6 +116,64 @@ func (c *LambdaLabsClient) ListInstances(ctx context.Context, _ v1.ListInstances
 	}
 
 	return instances, nil
+}
+
+func (c *LambdaLabsClient) addSSHKeyIdempotent(ctx context.Context, keyName, publicKey string) error {
+	_, _, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(openapi.AddSSHKeyRequest{
+		Name:      keyName,
+		PublicKey: &publicKey,
+	}).Execute()
+	
+	if err != nil {
+		if strings.Contains(err.Error(), "name must be unique") {
+			return nil
+		}
+		return handleLLErrToCloudErr(err)
+	}
+	
+	return nil
+}
+
+func parseGPUFromDescription(description string) v1.GPU {
+	gpu := v1.GPU{
+		Manufacturer: "NVIDIA",
+	}
+	
+	countRegex := regexp.MustCompile(`(\d+)x`)
+	if countMatch := countRegex.FindStringSubmatch(description); len(countMatch) > 1 {
+		if count, err := strconv.ParseInt(countMatch[1], 10, 32); err == nil {
+			gpu.Count = int32(count)
+		}
+	}
+	
+	memoryRegex := regexp.MustCompile(`\((\d+)\s*GB\)`)
+	if memoryMatch := memoryRegex.FindStringSubmatch(description); len(memoryMatch) > 1 {
+		if memoryGiB, err := strconv.Atoi(memoryMatch[1]); err == nil {
+			gpu.Memory = units.Base2Bytes(memoryGiB) * units.GiB
+		}
+	}
+	
+	nameRegex := regexp.MustCompile(`\d+x\s+(.+?)\s+\(`)
+	if nameMatch := nameRegex.FindStringSubmatch(description); len(nameMatch) > 1 {
+		gpu.Name = strings.TrimSpace(nameMatch[1])
+		gpu.Type = gpu.Name
+	}
+	
+	if strings.Contains(description, "SXM4") {
+		gpu.NetworkDetails = "SXM4"
+	} else if strings.Contains(description, "PCIe") {
+		gpu.NetworkDetails = "PCIe"
+	}
+	
+	return gpu
+}
+
+func generateFirewallRuleFromPort(port int32) v1.FirewallRule {
+	return v1.FirewallRule{
+		FromPort: port,
+		ToPort:   port,
+		IPRanges: []string{"0.0.0.0/0"},
+	}
 }
 
 // RebootInstance reboots an instance
@@ -135,7 +188,7 @@ func (c *LambdaLabsClient) RebootInstance(ctx context.Context, instanceID v1.Clo
 		defer func() { _ = httpResp.Body.Close() }()
 	}
 	if err != nil {
-		return fmt.Errorf("failed to reboot instance: %w", err)
+		return handleLLErrToCloudErr(err)
 	}
 
 	return nil
@@ -175,6 +228,17 @@ func convertLambdaLabsInstanceToV1Instance(llInstance openapi.Instance) *v1.Inst
 		refID = llInstance.SshKeyNames[0]
 	}
 
+	firewallRules := v1.FirewallRules{
+		IngressRules: []v1.FirewallRule{
+			generateFirewallRuleFromPort(22),
+			generateFirewallRuleFromPort(2222),
+		},
+		EgressRules: []v1.FirewallRule{
+			generateFirewallRuleFromPort(22),
+			generateFirewallRuleFromPort(2222),
+		},
+	}
+
 	return &v1.Instance{
 		Name:           name,
 		RefID:          refID,
@@ -189,11 +253,14 @@ func convertLambdaLabsInstanceToV1Instance(llInstance openapi.Instance) *v1.Inst
 		Status: v1.Status{
 			LifecycleStatus: convertLambdaLabsStatusToV1Status(llInstance.Status),
 		},
-		Location:   llInstance.Region.Name,
-		SSHUser:    "ubuntu",
-		SSHPort:    22,
-		Stoppable:  false,
-		Rebootable: true,
+		Location:      llInstance.Region.Name,
+		SSHUser:       "ubuntu",
+		SSHPort:       22,
+		Stoppable:     false,
+		Rebootable:    true,
+		VolumeType:    "ssd",
+		DiskSize:      units.Base2Bytes(llInstance.InstanceType.Specs.StorageGib) * units.GiB,
+		FirewallRules: firewallRules,
 	}
 }
 
