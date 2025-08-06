@@ -141,33 +141,33 @@ func parseGPUFromDescription(description string) v1.GPU {
 	gpu := v1.GPU{
 		Manufacturer: "NVIDIA",
 	}
-	
+
 	countRegex := regexp.MustCompile(`(\d+)x`)
 	if countMatch := countRegex.FindStringSubmatch(description); len(countMatch) > 1 {
 		if count, err := strconv.ParseInt(countMatch[1], 10, 32); err == nil {
 			gpu.Count = int32(count)
 		}
 	}
-	
+
 	memoryRegex := regexp.MustCompile(`\((\d+)\s*GB\)`)
 	if memoryMatch := memoryRegex.FindStringSubmatch(description); len(memoryMatch) > 1 {
 		if memoryGiB, err := strconv.Atoi(memoryMatch[1]); err == nil {
 			gpu.Memory = units.Base2Bytes(memoryGiB) * units.GiB
 		}
 	}
-	
+
 	nameRegex := regexp.MustCompile(`\d+x\s+(.+?)\s+\(`)
 	if nameMatch := nameRegex.FindStringSubmatch(description); len(nameMatch) > 1 {
 		gpu.Name = strings.TrimSpace(nameMatch[1])
 		gpu.Type = gpu.Name
 	}
-	
+
 	if strings.Contains(description, "SXM4") {
 		gpu.NetworkDetails = "SXM4"
 	} else if strings.Contains(description, "PCIe") {
 		gpu.NetworkDetails = "PCIe"
 	}
-	
+
 	return gpu
 }
 

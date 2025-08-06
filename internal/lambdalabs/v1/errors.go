@@ -8,7 +8,7 @@ import (
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
 
-func handleLLAPIError(resp *http.Response, err error) error {
+func handleLLAPIError(_ *http.Response, err error) error {
 	if err == nil {
 		return nil
 	}
