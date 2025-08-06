@@ -119,18 +119,21 @@ func (c *LambdaLabsClient) ListInstances(ctx context.Context, _ v1.ListInstances
 }
 
 func (c *LambdaLabsClient) addSSHKeyIdempotent(ctx context.Context, keyName, publicKey string) error {
-	_, _, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(openapi.AddSSHKeyRequest{
+	_, resp, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(openapi.AddSSHKeyRequest{
 		Name:      keyName,
 		PublicKey: &publicKey,
 	}).Execute()
-	
+	if resp != nil {
+		defer func() { _ = resp.Body.Close() }()
+	}
+
 	if err != nil {
 		if strings.Contains(err.Error(), "name must be unique") {
 			return nil
 		}
 		return handleLLErrToCloudErr(err)
 	}
-	
+
 	return nil
 }
 

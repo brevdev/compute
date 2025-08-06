@@ -148,14 +148,6 @@ func (c *LambdaLabsClient) GetLocations(_ context.Context, _ v1.GetLocationsArgs
 	return locations, nil
 }
 
-func getLocations() []LambdaLocation {
-	var locations []LambdaLocation
-	err := json.Unmarshal([]byte(lambdaLocationsData), &locations)
-	if err != nil {
-		return []LambdaLocation{}
-	}
-	return locations
-}
 
 func contains(slice []string, item string) bool {
 	for _, s := range slice {
