@@ -1,6 +1,16 @@
 # Lambda Labs SECURITY.md for Brev Cloud SDK
 
-This document outlines how the Lambda Labs integration complies with Brev Cloud SDK’s security architecture using Lambda Cloud primitives such as firewall rules and virtual network isolation.
+This document outlines how the Lambda Labs integration complies with Brev Cloud SDK's security architecture using Lambda Cloud primitives such as firewall rules and virtual network isolation.
+
+## 🔑 SSH Access Requirements
+
+**Lambda Labs instances must support SSH server functionality and SSH key-based authentication for Brev access.**
+
+### SSH Implementation
+- **SSH Server**: All Lambda Labs instances have SSH server (OpenSSH) pre-installed and running
+- **SSH Key Authentication**: Lambda Labs supports SSH key injection during instance creation
+- **Key Management**: Public SSH keys are automatically configured in `~/.ssh/authorized_keys`
+- **Access Method**: SSH provides the primary secure access method for instance managementn.
 
 ---
 

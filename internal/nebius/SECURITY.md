@@ -1,6 +1,16 @@
 # Nebius SECURITY.md for Brev Cloud SDK
 
-This document explains how Nebius VMs meet Brev Cloud SDK’s security requirements using Nebius primitives like Security Groups, VPCs, and projects.
+This document explains how Nebius VMs meet Brev Cloud SDK's security requirements using Nebius primitives like Security Groups, VPCs, and projects.
+
+## 🔑 SSH Access Requirements
+
+**Nebius VMs must support SSH server functionality and SSH key-based authentication for Brev access.**
+
+### SSH Implementation
+- **SSH Server**: All Nebius VM instances include SSH server (OpenSSH) installed and running by default
+- **SSH Key Authentication**: Nebius supports SSH public key injection during VM creation via metadata
+- **Key Management**: SSH keys are automatically configured in the VM's `~/.ssh/authorized_keys` file
+- **Security Integration**: SSH access works within the Security Group firewall rules defined for the instances.
 
 ---
 
