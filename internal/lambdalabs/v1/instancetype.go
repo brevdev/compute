@@ -40,7 +40,7 @@ func (c *LambdaLabsClient) GetInstanceTypes(ctx context.Context, args v1.GetInst
 			availableRegions[region.Name] = true
 		}
 
-	for _, region := range instanceTypeData.RegionsWithCapacityAvailable {
+		for _, region := range instanceTypeData.RegionsWithCapacityAvailable {
 		if len(args.Locations) > 0 && !args.Locations.IsAll() && !containsLocation(args.Locations, region.Name) {
 			continue
 		}
@@ -101,7 +101,6 @@ func convertLambdaLabsInstanceTypeToV1InstanceType(location string, llInstanceTy
 	return instanceType, nil
 }
 
-
 const lambdaLocationsData = `[
     {"location_name": "us-west-1", "description": "California, USA", "country": "USA"},
     {"location_name": "us-west-2", "description": "Arizona, USA", "country": "USA"},
@@ -147,7 +146,6 @@ func (c *LambdaLabsClient) GetLocations(_ context.Context, _ v1.GetLocationsArgs
 
 	return locations, nil
 }
-
 
 func contains(slice []string, item string) bool {
 	for _, s := range slice {

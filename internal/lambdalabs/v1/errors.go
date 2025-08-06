@@ -2,19 +2,10 @@ package v1
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	v1 "github.com/brevdev/compute/pkg/v1"
 )
-
-func handleLLAPIError(_ *http.Response, err error) error {
-	if err == nil {
-		return nil
-	}
-
-	return handleLLErrToCloudErr(err)
-}
 
 func handleLLErrToCloudErr(err error) error {
 	if err == nil {
