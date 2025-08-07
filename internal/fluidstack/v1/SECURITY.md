@@ -2,6 +2,16 @@
 
 This document outlines FluidStack's security capabilities and compliance with Brev's security requirements.
 
+## 🔑 SSH Access Requirements
+
+**FluidStack instances must support SSH server functionality and SSH key-based authentication for Brev access.**
+
+### SSH Implementation Status
+- **SSH Server**: FluidStack instances include SSH server (OpenSSH) pre-installed and running
+- **SSH Key Authentication**: FluidStack supports SSH public key injection during instance provisioning
+- **Key Management**: Public SSH keys are configured in `~/.ssh/authorized_keys` during instance setup
+- **Network Access**: SSH access operates within FluidStack's project-level network isolation model
+
 ## ✅ FULLY COMPLIANT
 
 ### Disk Encryption

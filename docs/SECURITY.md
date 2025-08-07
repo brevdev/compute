@@ -2,6 +2,24 @@
 
 This document outlines the security requirements and best practices for implementing cloud integrations with the Brev Compute SDK. If the cloud provider has a different security model, please indicate in the providers SECURITY.md file.
 
+## 🔑 SSH Access Requirements
+
+**Brev depends on SSH server functionality and SSH key-based authentication for instance access.**
+
+### SSH Server Requirements
+
+1. **SSH Server**: All instances must have an SSH server running and accessible
+2. **SSH Key Authentication**: Instances must support SSH key-based authentication
+3. **Key Injection**: The SDK must support passing SSH public keys during instance creation
+4. **Secure Access**: SSH access provides the primary method for secure instance management and user access
+
+**Implementation Requirements:**
+
+- SSH server (OpenSSH or equivalent) must be installed and running on all instances
+- SSH key pairs must be supported for authentication
+- Public keys must be injectable during instance provisioning
+- SSH access must be available through the configured firewall rules
+
 ## 🌐 Network Security Requirements
 
 ### Network Requirements
@@ -118,4 +136,4 @@ For security issues, vulnerabilities, or questions:
 
 ---
 
-**Note**: This document is a living document and will be updated as security requirements evolve. All cloud integrations must comply with these requirements to ensure the security and integrity of the Brev Compute SDK ecosystem. 
+**Note**: This document is a living document and will be updated as security requirements evolve. All cloud integrations must comply with these requirements to ensure the security and integrity of the Brev Compute SDK ecosystem.  
