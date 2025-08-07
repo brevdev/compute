@@ -58,4 +58,4 @@ func ValidateGetLocations(ctx context.Context, client CloudLocation) error {
 	return nil
 }
 
-const noSubLocation = "no-sub"
+const noSubLocation = "noSub"

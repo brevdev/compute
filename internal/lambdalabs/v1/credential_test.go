@@ -26,7 +26,7 @@ func TestLambdaLabsCredential_GetAPIType(t *testing.T) {
 
 func TestLambdaLabsCredential_GetCloudProviderID(t *testing.T) {
 	cred := &LambdaLabsCredential{}
-	assert.Equal(t, v1.CloudProviderID("lambdalabs"), cred.GetCloudProviderID())
+	assert.Equal(t, v1.CloudProviderID("lambda-labs"), cred.GetCloudProviderID())
 }
 
 func TestLambdaLabsCredential_GetTenantID(t *testing.T) {

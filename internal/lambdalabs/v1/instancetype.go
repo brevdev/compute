@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -11,13 +10,86 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/bojanz/currency"
+	"github.com/brevdev/cloud/internal/collections"
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
 	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
-// GetInstanceTypes retrieves available instance types from Lambda Labs
-// Supported via: GET /api/v1/instance-types
+// GetInstanceTypePollTime returns the polling interval for instance types
+func (c *LambdaLabsClient) GetInstanceTypePollTime() time.Duration {
+	return 5 * time.Minute
+}
+
 func (c *LambdaLabsClient) GetInstanceTypes(ctx context.Context, args v1.GetInstanceTypeArgs) ([]v1.InstanceType, error) {
+	instanceTypesResp, err := c.getInstanceTypes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	locations, err := c.GetLocations(ctx, v1.GetLocationsArgs{})
+	if err != nil {
+		return nil, err
+	}
+
+	instanceTypes, err := collections.MapE(collections.GetMapValues(instanceTypesResp.Data), func(resp openapi.InstanceTypes200ResponseDataValue) ([]v1.InstanceType, error) {
+		currentlyAvailableRegions := collections.GroupBy(resp.RegionsWithCapacityAvailable, func(lambdaRegion openapi.Region) string {
+			return lambdaRegion.Name
+		})
+		its, err1 := collections.MapE(locations, func(region v1.Location) (v1.InstanceType, error) {
+			isAvailable := false
+			if _, ok := currentlyAvailableRegions[region.Name]; ok {
+				isAvailable = true
+			}
+			it, err2 := convertLambdaLabsInstanceTypeToV1InstanceType(region.Name, resp.InstanceType, isAvailable)
+			if err2 != nil {
+				return v1.InstanceType{}, err2
+			}
+			return it, nil
+		})
+		if err1 != nil {
+			return []v1.InstanceType{}, err1
+		}
+		return its, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	instanceTypesFlattened := collections.Flatten(instanceTypes)
+
+	if len(args.Locations) == 0 {
+		if c.location != "" {
+			args.Locations = []string{c.location}
+		} else {
+			args.Locations = v1.All
+		}
+	}
+
+	if !args.Locations.IsAll() {
+		instanceTypesFlattened = collections.Filter(instanceTypesFlattened, func(it v1.InstanceType) bool {
+			return collections.ListContains(args.Locations, it.Location)
+		})
+	}
+
+	if len(args.SupportedArchitectures) > 0 {
+		instanceTypesFlattened = collections.Filter(instanceTypesFlattened, func(instanceType v1.InstanceType) bool {
+			for _, arch := range args.SupportedArchitectures {
+				if collections.ListContains(instanceType.SupportedArchitectures, arch) {
+					return true
+				}
+			}
+			return false
+		})
+	}
+	if len(args.InstanceTypes) > 0 {
+		instanceTypesFlattened = collections.Filter(instanceTypesFlattened, func(instanceType v1.InstanceType) bool {
+			return collections.ListContains(args.InstanceTypes, instanceType.Type)
+		})
+	}
+
+	return instanceTypesFlattened, nil
+}
+
+func (c *LambdaLabsClient) getInstanceTypes(ctx context.Context) (*openapi.InstanceTypes200Response, error) {
 	resp, httpResp, err := c.client.DefaultAPI.InstanceTypes(c.makeAuthContext(ctx)).Execute()
 	if httpResp != nil {
 		defer func() { _ = httpResp.Body.Close() }()
@@ -26,165 +98,100 @@ func (c *LambdaLabsClient) GetInstanceTypes(ctx context.Context, args v1.GetInst
 		return nil, fmt.Errorf("failed to get instance types: %w", err)
 	}
 
-	var instanceTypes []v1.InstanceType
-	for _, llInstanceTypeData := range resp.Data {
-		for _, region := range llInstanceTypeData.RegionsWithCapacityAvailable {
-			instanceType, err := convertLambdaLabsInstanceTypeToV1InstanceType(
-				region.Name,
-				llInstanceTypeData.InstanceType,
-				true,
-			)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert instance type: %w", err)
-			}
-			instanceTypes = append(instanceTypes, instanceType)
-		}
-	}
-
-	if len(args.Locations) > 0 && !args.Locations.IsAll() {
-		filtered := make([]v1.InstanceType, 0)
-		for _, it := range instanceTypes {
-			for _, loc := range args.Locations {
-				if it.Location == loc {
-					filtered = append(filtered, it)
-					break
-				}
-			}
-		}
-		instanceTypes = filtered
-	}
-
-	if len(args.InstanceTypes) > 0 {
-		filtered := make([]v1.InstanceType, 0)
-		for _, it := range instanceTypes {
-			for _, itName := range args.InstanceTypes {
-				if it.Type == itName {
-					filtered = append(filtered, it)
-					break
-				}
-			}
-		}
-		instanceTypes = filtered
-	}
-
-	return instanceTypes, nil
+	return resp, nil
 }
 
-// GetInstanceTypePollTime returns the polling interval for instance types
-func (c *LambdaLabsClient) GetInstanceTypePollTime() time.Duration {
-	return 5 * time.Minute
-}
-
-// GetLocations retrieves available locations from Lambda Labs
-// UNSUPPORTED: No location listing endpoints found in Lambda Labs API
-func convertLambdaLabsInstanceTypeToV1InstanceType(location string, llInstanceType openapi.InstanceType, isAvailable bool) (v1.InstanceType, error) {
-	var gpus []v1.GPU
-	if !strings.Contains(llInstanceType.Description, "CPU") {
-		gpu := parseGPUFromDescription(llInstanceType.Description)
-		gpus = append(gpus, gpu)
-	}
-
-	amount, err := currency.NewAmountFromInt64(int64(llInstanceType.PriceCentsPerHour), "USD")
-	if err != nil {
-		return v1.InstanceType{}, fmt.Errorf("failed to create price amount: %w", err)
-	}
-
-	instanceType := v1.InstanceType{
-		Location:      location,
-		Type:          llInstanceType.Name,
-		SupportedGPUs: gpus,
-		SupportedStorage: []v1.Storage{
-			{
-				Type: "ssd",
-				Size: units.GiB * units.Base2Bytes(llInstanceType.Specs.StorageGib),
-			},
-		},
-		Memory:                 units.GiB * units.Base2Bytes(llInstanceType.Specs.MemoryGib),
-		VCPU:                   llInstanceType.Specs.Vcpus,
-		SupportedArchitectures: []string{"x86_64"},
-		Stoppable:              false,
-		Rebootable:             true,
-		IsAvailable:            isAvailable,
-		BasePrice:              &amount,
-		Provider:               "lambdalabs",
-	}
-
-	instanceType.ID = v1.MakeGenericInstanceTypeID(instanceType)
-
-	return instanceType, nil
-}
-
-func parseGPUFromDescription(description string) v1.GPU {
-	countRegex := regexp.MustCompile(`(\d+)x`)
-	memoryRegex := regexp.MustCompile(`(\d+) GB`)
-	nameRegex := regexp.MustCompile(`x (.*?) \(`)
-
+func parseGPUFromDescription(input string) (v1.GPU, error) {
 	var gpu v1.GPU
 
-	if matches := countRegex.FindStringSubmatch(description); len(matches) > 1 {
-		if count, err := strconv.ParseInt(matches[1], 10, 32); err == nil {
-			gpu.Count = int32(count)
-		}
+	// Extract the count
+	countRegex := regexp.MustCompile(`(\d+)x`)
+	countMatch := countRegex.FindStringSubmatch(input)
+	if len(countMatch) == 0 {
+		return v1.GPU{}, fmt.Errorf("could not find count in %s", input)
 	}
+	count, _ := strconv.ParseInt(countMatch[1], 10, 32)
+	gpu.Count = int32(count)
 
-	if matches := memoryRegex.FindStringSubmatch(description); len(matches) > 1 {
-		if memory, err := strconv.Atoi(matches[1]); err == nil {
-			gpu.Memory = units.GiB * units.Base2Bytes(memory)
-		}
+	// Extract the memory
+	memoryRegex := regexp.MustCompile(`(\d+) GB`)
+	memoryMatch := memoryRegex.FindStringSubmatch(input)
+	if len(memoryMatch) == 0 {
+		return v1.GPU{}, fmt.Errorf("could not find memory in %s", input)
 	}
+	memoryStr := memoryMatch[1]
+	memoryGiB, _ := strconv.Atoi(memoryStr)
+	gpu.Memory = units.GiB * units.Base2Bytes(memoryGiB)
 
-	if matches := nameRegex.FindStringSubmatch(description); len(matches) > 1 {
-		gpu.Name = strings.TrimSpace(matches[1])
-		gpu.Type = gpu.Name
+	// Extract the network details
+	networkRegex := regexp.MustCompile(`(\w+\s?)+\)`)
+	networkMatch := networkRegex.FindStringSubmatch(input)
+	if len(networkMatch) == 0 {
+		return v1.GPU{}, fmt.Errorf("could not find network details in %s", input)
+	}
+	networkStr := strings.TrimSuffix(networkMatch[0], ")")
+	networkDetails := strings.TrimSpace(strings.ReplaceAll(networkStr, memoryStr+" GB", ""))
+	gpu.NetworkDetails = networkDetails
+
+	// Extract the name
+	nameRegex := regexp.MustCompile(`x (.*?) \(`)
+	nameMatch := nameRegex.FindStringSubmatch(input)
+	if len(nameMatch) == 0 {
+		return v1.GPU{}, fmt.Errorf("could not find name in %s", input)
+	}
+	nameStr := strings.TrimRight(strings.TrimLeft(nameMatch[0], "x "), " (")
+	nameStr = regexp.MustCompile(`(?i)^Tesla\s+`).ReplaceAllString(nameStr, "")
+	gpu.Name = nameStr
+	if networkDetails != "" {
+		gpu.Type = nameStr + "." + networkDetails
+	} else {
+		gpu.Type = nameStr
 	}
 
 	gpu.Manufacturer = "NVIDIA"
 
-	return gpu
+	return gpu, nil
 }
 
-const lambdaLocationsData = `[
-    {"location_name": "us-west-1", "description": "California, USA", "country": "USA"},
-    {"location_name": "us-west-2", "description": "Arizona, USA", "country": "USA"},
-    {"location_name": "us-west-3", "description": "Utah, USA", "country": "USA"},
-    {"location_name": "us-south-1", "description": "Texas, USA", "country": "USA"},
-    {"location_name": "us-east-1", "description": "Virginia, USA", "country": "USA"},
-    {"location_name": "us-midwest-1", "description": "Illinois, USA", "country": "USA"},
-    {"location_name": "australia-southeast-1", "description": "Australia", "country": "AUS"},
-    {"location_name": "europe-central-1", "description": "Germany", "country": "DEU"},
-    {"location_name": "asia-south-1", "description": "India", "country": "IND"},
-    {"location_name": "me-west-1", "description": "Israel", "country": "ISR"},
-    {"location_name": "europe-south-1", "description": "Italy", "country": "ITA"},
-    {"location_name": "asia-northeast-1", "description": "Osaka, Japan", "country": "JPN"},
-    {"location_name": "asia-northeast-2", "description": "Tokyo, Japan", "country": "JPN"},
-    {"location_name": "us-east-3", "description": "Washington D.C, USA", "country": "USA"},
-    {"location_name": "us-east-2", "description": "Washington D.C, USA", "country": "USA"},
-    {"location_name": "australia-east-1", "description": "Sydney, Australia", "country": "AUS"},
-    {"location_name": "us-south-3", "description": "Central Texas, USA", "country": "USA"},
-    {"location_name": "us-south-2", "description": "North Texas, USA", "country": "USA"}
-]`
-
-type LambdaLocation struct {
-	LocationName string `json:"location_name"`
-	Description  string `json:"description"`
-	Country      string `json:"country"`
-}
-
-func (c *LambdaLabsClient) GetLocations(_ context.Context, _ v1.GetLocationsArgs) ([]v1.Location, error) {
-	var regionData []LambdaLocation
-	if err := json.Unmarshal([]byte(lambdaLocationsData), &regionData); err != nil {
-		return nil, fmt.Errorf("failed to parse location data: %w", err)
+func convertLambdaLabsInstanceTypeToV1InstanceType(location string, instType openapi.InstanceType, isAvailable bool) (v1.InstanceType, error) {
+	gpus := []v1.GPU{}
+	if !strings.Contains(instType.Description, "CPU") {
+		gpu, err := parseGPUFromDescription(instType.Description)
+		if err != nil {
+			return v1.InstanceType{}, err
+		}
+		gpus = append(gpus, gpu)
 	}
-
-	locations := make([]v1.Location, 0, len(regionData))
-	for _, region := range regionData {
-		locations = append(locations, v1.Location{
-			Name:        region.LocationName,
-			Description: region.Description,
-			Available:   true,
-			Country:     region.Country,
-		})
+	amount, err := currency.NewAmountFromInt64(int64(instType.PriceCentsPerHour), "USD")
+	if err != nil {
+		return v1.InstanceType{}, err
 	}
-
-	return locations, nil
+	it := v1.InstanceType{
+		Location:      location,
+		Type:          instType.Name,
+		SupportedGPUs: gpus,
+		SupportedStorage: []v1.Storage{
+			{
+				Type:  "ssd",
+				Count: 1,
+				Size:  units.GiB * units.Base2Bytes(instType.Specs.StorageGib),
+			},
+		},
+		SupportedUsageClasses:    []string{"on-demand"},
+		Memory:                   units.GiB * units.Base2Bytes(instType.Specs.MemoryGib),
+		MaximumNetworkInterfaces: 0,
+		NetworkPerformance:       "",
+		SupportedNumCores:        []int32{},
+		DefaultCores:             0,
+		VCPU:                     instType.Specs.Vcpus,
+		SupportedArchitectures:   []string{"x86_64"},
+		ClockSpeedInGhz:          0,
+		Stoppable:                false,
+		Rebootable:               true,
+		IsAvailable:              isAvailable,
+		BasePrice:                &amount,
+		Provider:                 string(CloudProviderID),
+	}
+	it.ID = v1.MakeGenericInstanceTypeID(it)
+	return it, nil
 }
