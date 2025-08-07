@@ -5,11 +5,13 @@ import (
 	"testing"
 	"time"
 
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 	"github.com/stretchr/testify/require"
 )
 
 type ProviderConfig struct {
+	Location   string
+	StableIDs  []v1.InstanceTypeID
 	Credential v1.CloudCredential
 }
 
@@ -21,7 +23,7 @@ func RunValidationSuite(t *testing.T, config ProviderConfig) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
-	client, err := config.Credential.MakeClient(ctx, "")
+	client, err := config.Credential.MakeClient(ctx, config.Location)
 	if err != nil {
 		t.Fatalf("Failed to create client for %s: %v", config.Credential.GetCloudProviderID(), err)
 	}
@@ -37,17 +39,12 @@ func RunValidationSuite(t *testing.T, config ProviderConfig) {
 	})
 
 	t.Run("ValidateRegionalInstanceTypes", func(t *testing.T) {
-		err := v1.ValidateRegionalInstanceTypes(ctx, client)
+		err := v1.ValidateLocationalInstanceTypes(ctx, client)
 		require.NoError(t, err, "ValidateRegionalInstanceTypes should pass")
 	})
 
 	t.Run("ValidateStableInstanceTypeIDs", func(t *testing.T) {
-		types, err := client.GetInstanceTypes(ctx, v1.GetInstanceTypeArgs{})
-		require.NoError(t, err)
-		require.NotEmpty(t, types, "Should have instance types")
-
-		stableIDs := []v1.InstanceTypeID{types[0].ID}
-		err = v1.ValidateStableInstanceTypeIDs(ctx, client, stableIDs)
+		err = v1.ValidateStableInstanceTypeIDs(ctx, client, config.StableIDs)
 		require.NoError(t, err, "ValidateStableInstanceTypeIDs should pass")
 	})
 }
@@ -60,7 +57,7 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
 
-	client, err := config.Credential.MakeClient(ctx, "")
+	client, err := config.Credential.MakeClient(ctx, config.Location)
 	if err != nil {
 		t.Fatalf("Failed to create client for %s: %v", config.Credential.GetCloudProviderID(), err)
 	}

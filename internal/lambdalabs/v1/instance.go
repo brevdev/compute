@@ -7,7 +7,7 @@ import (
 	"time"
 
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 const lambdaLabsTimeNameFormat = "2006-01-02-15-04-05Z07-00"

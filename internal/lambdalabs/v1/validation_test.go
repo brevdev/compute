@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/brevdev/cloud/internal/validation"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 func TestValidationFunctions(t *testing.T) {
@@ -15,6 +16,7 @@ func TestValidationFunctions(t *testing.T) {
 
 	config := validation.ProviderConfig{
 		Credential: NewLambdaLabsCredential("validation-test", apiKey),
+		StableIDs:  []v1.InstanceTypeID{"us-west-1-noSub-gpu_8x_a100_80gb_sxm4", "us-east-1-noSub-gpu_8x_a100_80gb_sxm4"},
 	}
 
 	validation.RunValidationSuite(t, config)

@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 // LambdaLabsCredential implements the CloudCredential interface for Lambda Labs

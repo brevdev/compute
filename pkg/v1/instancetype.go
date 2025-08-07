@@ -9,6 +9,7 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/bojanz/currency"
+	"github.com/google/go-cmp/cmp"
 )
 
 type InstanceTypeID string
@@ -45,6 +46,28 @@ type InstanceType struct {
 	EstimatedDeployTime             *time.Duration
 	Provider                        string
 	CanModifyFirewallRules          bool
+}
+
+func MakeGenericInstanceTypeID(instanceType InstanceType) InstanceTypeID {
+	if instanceType.ID != "" {
+		return instanceType.ID
+	}
+	subLoc := noSubLocation
+	if len(instanceType.AvailableAzs) > 0 {
+		subLoc = instanceType.AvailableAzs[0]
+	}
+	return InstanceTypeID(fmt.Sprintf("%s-%s-%s", instanceType.Location, subLoc, instanceType.Type))
+}
+
+func MakeGenericInstanceTypeIDFromInstance(instance Instance) InstanceTypeID {
+	if instance.InstanceTypeID != "" {
+		return instance.InstanceTypeID
+	}
+	subLoc := noSubLocation
+	if instance.SubLocation != "" {
+		subLoc = instance.SubLocation
+	}
+	return InstanceTypeID(fmt.Sprintf("%s-%s-%s", instance.Location, subLoc, instance.InstanceType))
 }
 
 type GPU struct {
@@ -88,7 +111,7 @@ func ValidateGetInstanceTypes(ctx context.Context, client CloudInstanceType) err
 		return errors.New("no instance types available for validation")
 	}
 
-	// Test 1: Deterministic results - multiple calls should return the same results
+	// Test 1: Deterministic results - multiple calls should return the same results (order-insensitive)
 	allTypes2, err := client.GetInstanceTypes(ctx, GetInstanceTypeArgs{})
 	if err != nil {
 		return fmt.Errorf("failed to get all instance types on second call: %w", err)
@@ -98,8 +121,30 @@ func ValidateGetInstanceTypes(ctx context.Context, client CloudInstanceType) err
 	normalizedTypes1 := normalizeInstanceTypes(allTypes)
 	normalizedTypes2 := normalizeInstanceTypes(allTypes2)
 
-	if !reflect.DeepEqual(normalizedTypes1, normalizedTypes2) {
-		return fmt.Errorf("instance types are not deterministic between calls")
+	// Build maps keyed by ID for order-insensitive comparison
+	map1 := make(map[InstanceTypeID]InstanceType)
+	for _, t := range normalizedTypes1 {
+		map1[t.ID] = t
+	}
+	map2 := make(map[InstanceTypeID]InstanceType)
+	for _, t := range normalizedTypes2 {
+		map2[t.ID] = t
+	}
+
+	// Compare keys
+	if len(map1) != len(map2) {
+		return fmt.Errorf("instance types are not deterministic between calls: different number of types (%d vs %d)", len(map1), len(map2))
+	}
+	for id, t1 := range map1 {
+		t2, ok := map2[id]
+		if !ok {
+			return fmt.Errorf("instance type ID %s present in first call but missing in second", id)
+		}
+		if !reflect.DeepEqual(t1, t2) {
+			diff := cmp.Diff(t1, t2)
+			fmt.Printf("Instance type with ID %s differs between calls. Diff:\n%s\n", id, diff)
+			return fmt.Errorf("instance type with ID %s differs between calls", id)
+		}
 	}
 
 	// Test 2: ID stability and uniqueness
@@ -132,68 +177,86 @@ func ValidateGetInstanceTypes(ctx context.Context, client CloudInstanceType) err
 	expectedType.SubLocation = ""
 	expectedType.AvailableAzs = nil
 
-	actualType := filteredTypes[0]
-	actualType.ID = ""
-	actualType.SubLocation = ""
-	actualType.AvailableAzs = nil
-
-	// Use reflection to compare the structs
-	if !reflect.DeepEqual(expectedType, actualType) {
+	// Find the matching type in filteredTypes by ID (since order is not guaranteed)
+	var actualType InstanceType
+	found := false
+	for _, t := range filteredTypes {
+		tmp := t
+		tmp.ID = ""
+		tmp.SubLocation = ""
+		tmp.AvailableAzs = nil
+		if reflect.DeepEqual(expectedType, tmp) {
+			actualType = tmp
+			found = true
+			break
+		}
+	}
+	if !found {
+		// If not found by struct equality, just compare the first filtered type for debugging
+		actualType = filteredTypes[0]
+		actualType.ID = ""
+		actualType.SubLocation = ""
+		actualType.AvailableAzs = nil
+		diff := cmp.Diff(expectedType, actualType)
+		fmt.Printf("Filtered instance type does not match expected type. Diff:\n%s\n", diff)
 		return fmt.Errorf("filtered instance type does not match expected type: expected %+v, got %+v", expectedType, actualType)
 	}
 
 	return nil
 }
 
-// ValidateRegionalInstanceTypes validates that regional filtering works correctly
-// by comparing regional results with all-region results using CloudLocation capabilities
-func ValidateRegionalInstanceTypes(ctx context.Context, client CloudInstanceType) error {
-	// Get regional instance types (default behavior - typically current region)
-	regionalTypes, err := client.GetInstanceTypes(ctx, GetInstanceTypeArgs{})
-	if err != nil {
-		return fmt.Errorf("failed to get regional instance types: %w", err)
-	}
-
-	if len(regionalTypes) == 0 {
-		return errors.New("no regional instance types available for validation")
-	}
-
-	// Get all-region instance types by requesting from all locations
-	allRegionTypes, err := client.GetInstanceTypes(ctx, GetInstanceTypeArgs{
+// ValidateLocationalInstanceTypes validates that locational filtering works correctly
+// by comparing locational results with all-location results using CloudLocation capabilities
+func ValidateLocationalInstanceTypes(ctx context.Context, client CloudInstanceType) error {
+	// Get all-location instance types by requesting from all locations
+	allLocationTypes, err := client.GetInstanceTypes(ctx, GetInstanceTypeArgs{
 		Locations: All,
 	})
 	if err != nil {
-		// If all-region is not supported, skip this validation
-		return fmt.Errorf("all-region instance types not supported: %w", err)
+		// If all-location is not supported, skip this validation
+		return fmt.Errorf("all-location instance types not supported: %w", err)
 	}
 
-	if len(allRegionTypes) == 0 {
-		return errors.New("no all-region instance types available for validation")
+	if len(allLocationTypes) == 0 {
+		return errors.New("no all-location instance types available for validation")
 	}
 
-	// Validate that regional results are a subset of all-region results
-	if len(regionalTypes) >= len(allRegionTypes) {
-		return fmt.Errorf("regional instance types (%d) should be fewer than all-region types (%d)",
-			len(regionalTypes), len(allRegionTypes))
+	locationToTest := allLocationTypes[0].Location
+	// Get locational instance types (default behavior - typically current location)
+	locationalTypes, err := client.GetInstanceTypes(ctx, GetInstanceTypeArgs{
+		Locations: LocationsFilter{locationToTest},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get locational instance types: %w", err)
 	}
 
-	// Create a map of all-region types for efficient lookup
-	allRegionMap := make(map[InstanceTypeID]InstanceType)
-	for _, instanceType := range allRegionTypes {
-		allRegionMap[instanceType.ID] = instanceType
+	if len(locationalTypes) == 0 {
+		return errors.New("no locational instance types available for validation")
 	}
 
-	// Validate that all regional types exist in all-region results
-	for _, regionalType := range regionalTypes {
-		if _, exists := allRegionMap[regionalType.ID]; !exists {
-			return fmt.Errorf("regional instance type %s not found in all-region results", regionalType.ID)
+	// Validate that locational results are a subset of all-location results
+	if len(locationalTypes) >= len(allLocationTypes) {
+		return fmt.Errorf("locational instance types (%d) should be fewer than all-location types (%d)",
+			len(locationalTypes), len(allLocationTypes))
+	}
+
+	// Create a map of all-location types for efficient lookup
+	allLocationMap := make(map[InstanceTypeID]InstanceType)
+	for _, instanceType := range allLocationTypes {
+		allLocationMap[instanceType.ID] = instanceType
+	}
+
+	// Validate that all locational types exist in all-location results
+	for _, locationalType := range locationalTypes {
+		if _, exists := allLocationMap[locationalType.ID]; !exists {
+			return fmt.Errorf("locational instance type %s not found in all-location results", locationalType.ID)
 		}
 	}
 
-	// Additional validation: ensure regional types have appropriate location information
-	for _, regionalType := range regionalTypes {
-		if regionalType.Location == "" {
-			return fmt.Errorf("regional instance type %s should have location information", regionalType.ID)
+	// Additional validation: ensure locational types have appropriate location information
+	for _, locationalType := range locationalTypes {
+		if locationalType.Location == "" {
+			return fmt.Errorf("locational instance type %s should have location information", locationalType.ID)
 		}
 	}
 
@@ -244,11 +307,15 @@ func ValidateStableInstanceTypeIDs(ctx context.Context, client CloudInstanceType
 		return errors.New("stable IDs list cannot be empty")
 	}
 
-	// Validate that all stable IDs exist in current instance types
+	// Validate that all stable IDs exist in current instance types, collecting all errors
+	var errs []error
 	for _, stableID := range stableIDs {
 		if _, exists := typesByID[stableID]; !exists {
-			return fmt.Errorf("instance type id %s should be stable but not found", stableID)
+			errs = append(errs, fmt.Errorf("instance type id %s should be stable but not found", stableID)) // if this fails, we may need to coordinate a migration of the stable ID
 		}
+	}
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 
 	// Validate that all instance types have required properties

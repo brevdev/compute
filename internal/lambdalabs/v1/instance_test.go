@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 func TestLambdaLabsClient_CreateInstance_Success(t *testing.T) {

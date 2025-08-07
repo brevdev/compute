@@ -7,6 +7,12 @@ MODULE_NAME=github.com/brevdev/compute
 BUILD_DIR=build
 COVERAGE_DIR=coverage
 
+# Load environment variables from .env file if it exists
+ifneq (,$(wildcard .env))
+    include .env
+    export
+endif
+
 # Go related variables
 GOCMD=go
 GOBUILD=$(GOCMD) build

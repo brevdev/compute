@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	github.com/alecthomas/units v0.0.0-20240927000941-0f3dac36c52b
 	github.com/bojanz/currency v1.3.1
-	github.com/brevdev/compute v0.0.0-20250805004716-bc4fe363e0ea
+	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/nebius/gosdk v0.0.0-20250731090238-d96c0d4a5930

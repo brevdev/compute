@@ -12,7 +12,7 @@ import (
 	"github.com/alecthomas/units"
 	"github.com/bojanz/currency"
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 // GetInstanceTypes retrieves available instance types from Lambda Labs
@@ -72,7 +72,6 @@ func (c *LambdaLabsClient) GetInstanceTypes(ctx context.Context, args v1.GetInst
 
 // GetInstanceTypePollTime returns the polling interval for instance types
 func (c *LambdaLabsClient) GetInstanceTypePollTime() time.Duration {
-	// TODO: Configure appropriate polling time for Lambda Labs
 	return 5 * time.Minute
 }
 
@@ -110,7 +109,7 @@ func convertLambdaLabsInstanceTypeToV1InstanceType(location string, llInstanceTy
 		Provider:               "lambdalabs",
 	}
 
-	instanceType.ID = v1.InstanceTypeID(fmt.Sprintf("lambdalabs-%s-%s", location, llInstanceType.Name))
+	instanceType.ID = v1.MakeGenericInstanceTypeID(instanceType)
 
 	return instanceType, nil
 }
