@@ -12,7 +12,7 @@ import (
 	"github.com/cenkalti/backoff/v4"
 )
 
-func handleAPIError(ctx context.Context, resp *http.Response, err error) error {
+func handleAPIError(_ context.Context, resp *http.Response, err error) error {
 	body := ""
 	e, ok := err.(openapi.GenericOpenAPIError)
 	if ok {

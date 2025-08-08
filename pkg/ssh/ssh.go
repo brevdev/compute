@@ -31,6 +31,7 @@ func ConnectToHost(ctx context.Context, config ConnectionConfig) (*Client, error
 		dial:       d.DialContext,
 		privateKey: config.PrivKey,
 	}
+	fmt.Printf("local_ip: %s, public_ip: %s\n", localIP, publicIP)
 	err := sshClient.Connect(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect: %w", err)
@@ -96,7 +97,11 @@ func (c *Client) runCommand(ctx context.Context, cmd string) (string, string, er
 	if err != nil {
 		return "", "", fmt.Errorf("failed to create session, try a new connection: %w", err)
 	}
-	defer sess.Close()
+	defer func() {
+		if err := sess.Close(); err != nil {
+			fmt.Printf("failed to close session: %v\n", err)
+		}
+	}()
 
 	var stdOutBuffer bytes.Buffer
 	sess.Stdout = &stdOutBuffer
@@ -404,7 +409,11 @@ func GetLocalIP(ctx context.Context) (net.IP, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial for local IP: %w", err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			fmt.Printf("failed to close connection: %v\n", err)
+		}
+	}()
 
 	localAddr, ok := conn.LocalAddr().(*net.UDPAddr)
 	if !ok {
@@ -442,7 +451,11 @@ func GetPublicIPStr(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get public IP: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Printf("failed to close response body: %v\n", err)
+		}
+	}()
 
 	ip, err := io.ReadAll(resp.Body)
 	if err != nil {
