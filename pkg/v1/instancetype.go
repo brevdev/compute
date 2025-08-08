@@ -100,7 +100,7 @@ type GetInstanceTypeArgs struct {
 
 // ValidateGetInstanceTypes validates that the GetInstanceTypes functionality works correctly
 // by testing that filtering by specific instance types returns the expected results
-func ValidateGetInstanceTypes(ctx context.Context, client CloudInstanceType) error {
+func ValidateGetInstanceTypes(ctx context.Context, client CloudInstanceType) error { //nolint:funlen,gocyclo // todo refactor
 	// Get all instance types first
 	allTypes, err := client.GetInstanceTypes(ctx, GetInstanceTypeArgs{})
 	if err != nil {

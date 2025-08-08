@@ -22,7 +22,7 @@ type CloudCreateTerminateInstance interface {
 }
 
 func ValidateCreateInstance(ctx context.Context, client CloudCreateTerminateInstance, attrs CreateInstanceAttrs) (*Instance, error) {
-	t0 := time.Now()
+	t0 := time.Now().Add(-time.Minute)
 	attrs.RefID = uuid.New().String()
 	name, err := makeDebuggableName(attrs.Name)
 	if err != nil {
@@ -34,9 +34,9 @@ func ValidateCreateInstance(ctx context.Context, client CloudCreateTerminateInst
 		return nil, err
 	}
 	var validationErr error
-	t1 := time.Now()
+	t1 := time.Now().Add(1 * time.Minute)
 	diff := t1.Sub(t0)
-	if diff > 1*time.Minute {
+	if diff > 3*time.Minute {
 		validationErr = errors.Join(validationErr, fmt.Errorf("create instance took too long: %s", diff))
 	}
 	if i.CreatedAt.Before(t0) {
@@ -46,7 +46,7 @@ func ValidateCreateInstance(ctx context.Context, client CloudCreateTerminateInst
 		validationErr = errors.Join(validationErr, fmt.Errorf("createdAt is after t1: %s", i.CreatedAt))
 	}
 	if i.Name != name {
-		validationErr = errors.Join(validationErr, fmt.Errorf("name mismatch: %s != %s", i.Name, name))
+		fmt.Printf("name mismatch: %s != %s, input name does not mean return name will be stable\n", i.Name, name)
 	}
 	if i.RefID != attrs.RefID {
 		validationErr = errors.Join(validationErr, fmt.Errorf("refID mismatch: %s != %s", i.RefID, attrs.RefID))

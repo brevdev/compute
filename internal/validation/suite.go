@@ -61,6 +61,8 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 	if err != nil {
 		t.Fatalf("Failed to create client for %s: %v", config.Credential.GetCloudProviderID(), err)
 	}
+	capabilities, err := client.GetCapabilities(ctx)
+	require.NoError(t, err)
 
 	types, err := client.GetInstanceTypes(ctx, v1.GetInstanceTypeArgs{})
 	require.NoError(t, err)
@@ -70,35 +72,19 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 	require.NoError(t, err)
 	require.NotEmpty(t, locations, "Should have locations")
 
-	var instanceType string
-	var location string
-	for _, loc := range locations {
-		if loc.Available {
-			location = loc.Name
-			break
-		}
-	}
-	require.NotEmpty(t, location, "Should have available location")
-
-	for _, typ := range types {
-		if typ.Location == location && typ.IsAvailable {
-			instanceType = typ.Type
-			break
-		}
-	}
-	require.NotEmpty(t, instanceType, "Should have available instance type")
-
 	t.Run("ValidateCreateInstance", func(t *testing.T) {
-		attrs := v1.CreateInstanceAttrs{
-			Name:         "validation-test",
-			InstanceType: instanceType,
-			Location:     location,
+		attrs := v1.CreateInstanceAttrs{}
+		for _, typ := range types {
+			if typ.IsAvailable {
+				attrs.InstanceType = typ.Type
+				attrs.Location = typ.Location
+				attrs.PublicKey = GetTestPublicKey()
+				break
+			}
 		}
-
 		instance, err := v1.ValidateCreateInstance(ctx, client, attrs)
 		if err != nil {
-			t.Logf("ValidateCreateInstance failed: %v", err)
-			t.Skip("Skipping due to create instance failure - may be quota/availability issue")
+			t.Fatalf("ValidateCreateInstance failed: %v", err)
 		}
 		require.NotNil(t, instance)
 
@@ -112,6 +98,13 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 			err := v1.ValidateListCreatedInstance(ctx, client, instance)
 			require.NoError(t, err, "ValidateListCreatedInstance should pass")
 		})
+
+		if capabilities.IsCapable(v1.CapabilityStopStartInstance) && instance.Stoppable {
+			t.Run("ValidateStopStartInstance", func(t *testing.T) {
+				err := v1.ValidateStopStartInstance(ctx, client, *instance)
+				require.NoError(t, err, "ValidateStopStartInstance should pass")
+			})
+		}
 
 		t.Run("ValidateTerminateInstance", func(t *testing.T) {
 			err := v1.ValidateTerminateInstance(ctx, client, *instance)
