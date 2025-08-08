@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/brevdev/cloud/pkg/ssh"
 	v1 "github.com/brevdev/cloud/pkg/v1"
 	"github.com/stretchr/testify/require"
 )
@@ -78,7 +79,7 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 			if typ.IsAvailable {
 				attrs.InstanceType = typ.Type
 				attrs.Location = typ.Location
-				attrs.PublicKey = GetTestPublicKey()
+				attrs.PublicKey = ssh.GetTestPublicKey()
 				break
 			}
 		}
@@ -99,15 +100,28 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 			require.NoError(t, err, "ValidateListCreatedInstance should pass")
 		})
 
+		t.Run("ValidateSSHAccessible", func(t *testing.T) {
+			err := v1.ValidateInstanceSSHAccessible(ctx, client, instance, ssh.GetTestPrivateKey())
+			require.NoError(t, err, "ValidateSSHAccessible should pass")
+		})
+
+		instance, err = client.GetInstance(ctx, instance.CloudID)
+		require.NoError(t, err)
+
+		t.Run("ValidateInstanceImage", func(t *testing.T) {
+			err := v1.ValidateInstanceImage(ctx, *instance, ssh.GetTestPrivateKey())
+			require.NoError(t, err, "ValidateInstanceImage should pass")
+		})
+
 		if capabilities.IsCapable(v1.CapabilityStopStartInstance) && instance.Stoppable {
 			t.Run("ValidateStopStartInstance", func(t *testing.T) {
-				err := v1.ValidateStopStartInstance(ctx, client, *instance)
+				err := v1.ValidateStopStartInstance(ctx, client, instance)
 				require.NoError(t, err, "ValidateStopStartInstance should pass")
 			})
 		}
 
 		t.Run("ValidateTerminateInstance", func(t *testing.T) {
-			err := v1.ValidateTerminateInstance(ctx, client, *instance)
+			err := v1.ValidateTerminateInstance(ctx, client, instance)
 			require.NoError(t, err, "ValidateTerminateInstance should pass")
 		})
 	})

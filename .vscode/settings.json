@@ -23,6 +23,7 @@
         "-race",
         "-v",
         "-count=1",
+        "-timeout=30m"
     ],
     "go.testEnvFile": "${workspaceFolder}/.env"
 }

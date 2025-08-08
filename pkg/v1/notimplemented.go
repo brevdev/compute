@@ -122,3 +122,7 @@ func (c notImplCloudClient) MergeInstanceForUpdate(_, i Instance) Instance {
 func (c notImplCloudClient) MergeInstanceTypeForUpdate(_, i InstanceType) InstanceType {
 	return i
 }
+
+func (c notImplCloudClient) GetMaxCreateRequestsPerMinute() int {
+	return 10
+}

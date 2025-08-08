@@ -27,13 +27,14 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 			Name:      keyPairName,
 			PublicKey: &attrs.PublicKey,
 		}
-		_, resp, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(request).Execute()
+		keyPairResp, resp, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(request).Execute()
 		if resp != nil {
 			defer func() { _ = resp.Body.Close() }()
 		}
 		if err != nil && !strings.Contains(err.Error(), "name must be unique") {
 			return nil, fmt.Errorf("failed to add SSH key: %w", err)
 		}
+		keyPairName = keyPairResp.Data.Name
 	}
 	if keyPairName == "" {
 		return nil, errors.New("keyPairName is required if public key not provided")
@@ -174,6 +175,11 @@ func convertLambdaLabsInstanceToV1Instance(instance openapi.Instance) *v1.Instan
 		createTime, _ = time.Parse(lambdaLabsTimeNameFormat, createTimeStr)
 	}
 
+	var instancePrivateIP string
+	if instance.PrivateIp.IsSet() {
+		instancePrivateIP = *instance.PrivateIp.Get()
+	}
+
 	inst := v1.Instance{
 		RefID:          instance.SshKeyNames[0],
 		CloudCredRefID: cloudCredRefID,
@@ -182,6 +188,7 @@ func convertLambdaLabsInstanceToV1Instance(instance openapi.Instance) *v1.Instan
 		Name:           instanceName,
 		PublicIP:       instanceIP,
 		PublicDNS:      instanceIP,
+		PrivateIP:      instancePrivateIP,
 		Hostname:       instanceHostname,
 		Status: v1.Status{
 			LifecycleStatus: convertLambdaLabsStatusToV1Status(instance.Status),

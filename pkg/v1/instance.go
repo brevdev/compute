@@ -8,18 +8,24 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/brevdev/cloud/internal/collections"
+	"github.com/brevdev/cloud/pkg/ssh"
 	"github.com/google/uuid"
 )
+
+type CloudInstanceReader interface {
+	GetInstance(ctx context.Context, id CloudProviderInstanceID) (*Instance, error)
+	ListInstances(ctx context.Context, args ListInstancesArgs) ([]Instance, error)
+}
 
 type CloudCreateTerminateInstance interface {
 	// CreateInstance expects an instance object to exist if successful, and no instance to exist if there is ANY error
 	//      CloudClient Implementers: ensure that the instance is terminated if there is an error
 	// Public ip is not always returned from create, but will exist when instance is in running state
 	CreateInstance(ctx context.Context, attrs CreateInstanceAttrs) (*Instance, error)
-	GetInstance(ctx context.Context, id CloudProviderInstanceID) (*Instance, error)  // may or may not be locationally scoped
 	TerminateInstance(ctx context.Context, instanceID CloudProviderInstanceID) error // may or may not be locationally scoped
-	ListInstances(ctx context.Context, args ListInstancesArgs) ([]Instance, error)   // return all known instances from cloud api perspective
+	GetMaxCreateRequestsPerMinute() int
 	CloudInstanceType
+	CloudInstanceReader
 }
 
 func ValidateCreateInstance(ctx context.Context, client CloudCreateTerminateInstance, attrs CreateInstanceAttrs) (*Instance, error) {
@@ -90,7 +96,7 @@ func ValidateListCreatedInstance(ctx context.Context, client CloudCreateTerminat
 	return validationErr
 }
 
-func ValidateTerminateInstance(ctx context.Context, client CloudCreateTerminateInstance, instance Instance) error {
+func ValidateTerminateInstance(ctx context.Context, client CloudCreateTerminateInstance, instance *Instance) error {
 	err := client.TerminateInstance(ctx, instance.CloudID)
 	if err != nil {
 		return err
@@ -104,7 +110,7 @@ type CloudStopStartInstance interface {
 	StartInstance(ctx context.Context, instanceID CloudProviderInstanceID) error
 }
 
-func ValidateStopStartInstance(ctx context.Context, client CloudStopStartInstance, instance Instance) error {
+func ValidateStopStartInstance(ctx context.Context, client CloudStopStartInstance, instance *Instance) error {
 	err := client.StopInstance(ctx, instance.CloudID)
 	if err != nil {
 		return err
@@ -235,6 +241,13 @@ const (
 	LifecycleStatusFailed      LifecycleStatus = "failed"
 )
 
+const (
+	PendingToRunningTimeout    = 20 * time.Minute
+	RunningToStoppedTimeout    = 10 * time.Minute
+	StoppedToRunningTimeout    = 20 * time.Minute
+	RunningToTerminatedTimeout = 20 * time.Minute
+)
+
 type CloudProviderInstanceID string
 
 type ListInstancesArgs struct {
@@ -280,4 +293,42 @@ func makeDebuggableName(name string) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%s-%s", name, time.Now().In(pt).Format("2006-01-02-15-04-05")), nil
+}
+
+const RunningSSHTimeout = 10 * time.Minute
+
+func ValidateInstanceSSHAccessible(ctx context.Context, client CloudInstanceReader, instance *Instance, privateKey string) error {
+	var err error
+	instance, err = WaitForInstanceLifecycleStatus(ctx, client, instance, LifecycleStatusRunning, PendingToRunningTimeout)
+	if err != nil {
+		return err
+	}
+	sshUser := instance.SSHUser
+	sshPort := instance.SSHPort
+	publicIP := instance.PublicIP
+	// Validate that we have the required SSH connection details
+	if sshUser == "" {
+		return fmt.Errorf("SSH user is not set for instance %s", instance.CloudID)
+	}
+	if sshPort == 0 {
+		return fmt.Errorf("SSH port is not set for instance %s", instance.CloudID)
+	}
+	if publicIP == "" {
+		return fmt.Errorf("public IP is not available for instance %s", instance.CloudID)
+	}
+
+	err = ssh.WaitForSSH(ctx, ssh.ConnectionConfig{
+		User:     sshUser,
+		HostPort: fmt.Sprintf("%s:%d", publicIP, sshPort),
+		PrivKey:  privateKey,
+	}, ssh.WaitForSSHOptions{
+		Timeout: RunningSSHTimeout,
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("SSH connection validated successfully for %s@%s:%d\n", sshUser, publicIP, sshPort)
+
+	return nil
 }
