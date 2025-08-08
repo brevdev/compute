@@ -15,7 +15,7 @@ jobs:
   lambdalabs-validation:
     name: LambdaLabs Provider Validation
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-validation'))
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
     
     steps:
     - uses: actions/checkout@v4
