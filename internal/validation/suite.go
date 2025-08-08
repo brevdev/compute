@@ -109,7 +109,6 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 		t.Run("ValidateTerminateInstance", func(t *testing.T) {
 			err := v1.ValidateTerminateInstance(ctx, client, *instance)
 			require.NoError(t, err, "ValidateTerminateInstance should pass")
-			instance = nil // Mark as terminated
 		})
 	})
 }

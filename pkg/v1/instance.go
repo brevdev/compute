@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
+	"github.com/brevdev/cloud/internal/collections"
 	"github.com/google/uuid"
 )
 
@@ -75,20 +76,16 @@ func ValidateListCreatedInstance(ctx context.Context, client CloudCreateTerminat
 	if len(ins) == 0 {
 		validationErr = errors.Join(validationErr, fmt.Errorf("no instances found"))
 	}
-	if ins[0].Location != i.Location {
-		validationErr = errors.Join(validationErr, fmt.Errorf("location mismatch: %s != %s", ins[0].Location, i.Location))
-	}
-	instanceIDsMap := map[CloudProviderInstanceID]Instance{}
-	for _, inst := range ins {
-		instanceIDsMap[inst.CloudID] = inst
-	}
-	inst, ok := instanceIDsMap[i.CloudID]
-	if !ok {
+	foundInstance := collections.Find(ins, func(inst Instance) bool {
+		return inst.CloudID == i.CloudID
+	})
+	if foundInstance == nil {
 		validationErr = errors.Join(validationErr, fmt.Errorf("instance not found: %s", i.CloudID))
-		return validationErr
 	}
-	if inst.RefID != i.RefID {
-		validationErr = errors.Join(validationErr, fmt.Errorf("refID mismatch: %s != %s", inst.RefID, i.RefID))
+	if foundInstance.Location != i.Location {
+		validationErr = errors.Join(validationErr, fmt.Errorf("location mismatch: %s != %s", foundInstance.Location, i.Location))
+	} else if foundInstance.RefID != i.RefID {
+		validationErr = errors.Join(validationErr, fmt.Errorf("refID mismatch: %s != %s", foundInstance.RefID, i.RefID))
 	}
 	return validationErr
 }
@@ -98,7 +95,7 @@ func ValidateTerminateInstance(ctx context.Context, client CloudCreateTerminateI
 	if err != nil {
 		return err
 	}
-	// TODO wait for terminated
+	// TODO wait for instance to go into terminating state
 	return nil
 }
 
