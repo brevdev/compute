@@ -1,6 +1,19 @@
+# Contributing to Lambda Labs
+
+## Setup
+
+- Create a `.env` file in the root of the project with the following:
+
+```
+LAMBDALABS_API_KEY=secret_my-api-key_**********
+```
+
+## Running Tests
+
+Use the vscode "run tests" task to run the tests.
 
 
-## Prompts
+## Useful Prompts
 ```
 can you take a look at the file structure in @v1 this is supposed to be the reference/interface for providers. can you replicate the file structure in @lambdalabs ? I just want the file structure and maybe some stubs if they make sense.
 ```

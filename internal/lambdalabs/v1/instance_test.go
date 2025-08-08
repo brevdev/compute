@@ -9,8 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/brevdev/cloud/internal/collections"
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 func TestLambdaLabsClient_CreateInstance_Success(t *testing.T) {
@@ -79,6 +80,7 @@ func TestLambdaLabsClient_CreateInstance_WithoutPublicKey(t *testing.T) {
 		InstanceType: "gpu_1x_a10",
 		Location:     "us-west-1",
 		Name:         "test-instance",
+		KeyPairName:  collections.Ptr("test-key-pair"),
 	}
 
 	instance, err := client.CreateInstance(context.Background(), args)

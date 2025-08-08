@@ -5,9 +5,11 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"net/http"
+	"time"
 
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
+	"github.com/cenkalti/backoff/v4"
 )
 
 // LambdaLabsCredential implements the CloudCredential interface for Lambda Labs
@@ -36,9 +38,13 @@ func (c *LambdaLabsCredential) GetAPIType() v1.APIType {
 	return v1.APITypeGlobal
 }
 
+const CloudProviderID = "lambda-labs"
+
+const DefaultRegion string = "us-west-1"
+
 // GetCloudProviderID returns the cloud provider ID for Lambda Labs
 func (c *LambdaLabsCredential) GetCloudProviderID() v1.CloudProviderID {
-	return "lambdalabs"
+	return CloudProviderID
 }
 
 // GetTenantID returns the tenant ID for Lambda Labs
@@ -55,10 +61,11 @@ func (c *LambdaLabsCredential) MakeClient(_ context.Context, _ string) (v1.Cloud
 // It embeds NotImplCloudClient to handle unsupported features
 type LambdaLabsClient struct {
 	v1.NotImplCloudClient
-	refID   string
-	apiKey  string
-	baseURL string
-	client  *openapi.APIClient
+	refID    string
+	apiKey   string
+	baseURL  string
+	client   *openapi.APIClient
+	location string
 }
 
 var _ v1.CloudClient = &LambdaLabsClient{}
@@ -88,8 +95,11 @@ func (c *LambdaLabsClient) GetCloudProviderID() v1.CloudProviderID {
 }
 
 // MakeClient creates a new client instance
-func (c *LambdaLabsClient) MakeClient(_ context.Context, _ string) (v1.CloudClient, error) {
-	// Lambda Labs doesn't require location-specific clients
+func (c *LambdaLabsClient) MakeClient(_ context.Context, location string) (v1.CloudClient, error) {
+	if location == "" {
+		location = DefaultRegion
+	}
+	c.location = location
 	return c, nil
 }
 
@@ -109,4 +119,11 @@ func (c *LambdaLabsClient) makeAuthContext(ctx context.Context) context.Context 
 	return context.WithValue(ctx, openapi.ContextBasicAuth, openapi.BasicAuth{
 		UserName: c.apiKey,
 	})
+}
+
+func getBackoff() backoff.BackOff {
+	bo := backoff.NewExponentialBackOff()
+	bo.InitialInterval = 1000 * time.Millisecond
+	bo.MaxElapsedTime = 120 * time.Second
+	return bo
 }

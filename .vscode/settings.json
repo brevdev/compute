@@ -1,0 +1,29 @@
+{
+    "go.useLanguageServer": true,
+    "gopls": {
+        "gofumpt": true
+    },
+    "[go]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "[go.mod]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+        "--fast"
+    ],
+    "go.testFlags": [
+        "-race",
+        "-v",
+        "-count=1",
+        "-timeout=30m"
+    ],
+    "go.testEnvFile": "${workspaceFolder}/.env"
+}

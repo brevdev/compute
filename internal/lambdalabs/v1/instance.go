@@ -2,12 +2,14 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/alecthomas/units"
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 const lambdaLabsTimeNameFormat = "2006-01-02-15-04-05Z07-00"
@@ -25,19 +27,22 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 			Name:      keyPairName,
 			PublicKey: &attrs.PublicKey,
 		}
-
-		_, resp, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(request).Execute()
+		keyPairResp, resp, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(request).Execute()
 		if resp != nil {
 			defer func() { _ = resp.Body.Close() }()
 		}
 		if err != nil && !strings.Contains(err.Error(), "name must be unique") {
 			return nil, fmt.Errorf("failed to add SSH key: %w", err)
 		}
+		keyPairName = keyPairResp.Data.Name
+	}
+	if keyPairName == "" {
+		return nil, errors.New("keyPairName is required if public key not provided")
 	}
 
 	location := attrs.Location
 	if location == "" {
-		location = "us-west-1"
+		location = c.location
 	}
 
 	quantity := int32(1)
@@ -50,9 +55,10 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 	}
 
 	name := fmt.Sprintf("%s--%s", c.GetReferenceID(), time.Now().UTC().Format(lambdaLabsTimeNameFormat))
-	if attrs.Name != "" {
-		name = fmt.Sprintf("%s--%s--%s", c.GetReferenceID(), attrs.Name, time.Now().UTC().Format(lambdaLabsTimeNameFormat))
+	if len(name) > 64 {
+		return nil, errors.New("name is too long")
 	}
+
 	request.Name = *openapi.NewNullableString(&name)
 
 	resp, httpResp, err := c.client.DefaultAPI.LaunchInstance(c.makeAuthContext(ctx)).LaunchInstanceRequest(request).Execute()
@@ -60,7 +66,7 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 		defer func() { _ = httpResp.Body.Close() }()
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to launch instance: %w", err)
+		return nil, fmt.Errorf("failed to launch instance: %w", handleErrToCloudErr(err))
 	}
 
 	if len(resp.Data.InstanceIds) != 1 {
@@ -142,58 +148,73 @@ func (c *LambdaLabsClient) RebootInstance(ctx context.Context, instanceID v1.Clo
 }
 
 // MergeInstanceForUpdate merges instance data for updates
-func convertLambdaLabsInstanceToV1Instance(llInstance openapi.Instance) *v1.Instance {
-	var publicIP, privateIP, hostname, name string
-
-	if llInstance.Ip.IsSet() {
-		publicIP = *llInstance.Ip.Get()
-	}
-	if llInstance.PrivateIp.IsSet() {
-		privateIP = *llInstance.PrivateIp.Get()
-	}
-	if llInstance.Hostname.IsSet() {
-		hostname = *llInstance.Hostname.Get()
-	}
-	if llInstance.Name.IsSet() {
-		name = *llInstance.Name.Get()
+func convertLambdaLabsInstanceToV1Instance(instance openapi.Instance) *v1.Instance {
+	var instanceIP string
+	if instance.Ip.IsSet() {
+		instanceIP = *instance.Ip.Get()
 	}
 
+	var instanceName string
+	if instance.Name.IsSet() {
+		instanceName = *instance.Name.Get()
+	}
+
+	var instanceHostname string
+	if instance.Hostname.IsSet() {
+		instanceHostname = *instance.Hostname.Get()
+	}
+
+	nameSplit := strings.Split(instanceName, "--")
 	var cloudCredRefID string
-	var createdAt time.Time
-	if name != "" {
-		parts := strings.Split(name, "--")
-		if len(parts) > 0 {
-			cloudCredRefID = parts[0]
-		}
-		if len(parts) > 1 {
-			createdAt, _ = time.Parse("2006-01-02-15-04-05Z07-00", parts[1])
-		}
+	if len(nameSplit) > 0 {
+		cloudCredRefID = nameSplit[0]
+	}
+	var createTime time.Time
+	if len(nameSplit) > 1 {
+		createTimeStr := nameSplit[1]
+		createTime, _ = time.Parse(lambdaLabsTimeNameFormat, createTimeStr)
 	}
 
-	refID := ""
-	if len(llInstance.SshKeyNames) > 0 {
-		refID = llInstance.SshKeyNames[0]
+	var instancePrivateIP string
+	if instance.PrivateIp.IsSet() {
+		instancePrivateIP = *instance.PrivateIp.Get()
 	}
 
-	return &v1.Instance{
-		Name:           name,
-		RefID:          refID,
+	inst := v1.Instance{
+		RefID:          instance.SshKeyNames[0],
 		CloudCredRefID: cloudCredRefID,
-		CreatedAt:      createdAt,
-		CloudID:        v1.CloudProviderInstanceID(llInstance.Id),
-		PublicIP:       publicIP,
-		PrivateIP:      privateIP,
-		PublicDNS:      publicIP,
-		Hostname:       hostname,
-		InstanceType:   llInstance.InstanceType.Name,
+		CreatedAt:      createTime,
+		CloudID:        v1.CloudProviderInstanceID(instance.Id),
+		Name:           instanceName,
+		PublicIP:       instanceIP,
+		PublicDNS:      instanceIP,
+		PrivateIP:      instancePrivateIP,
+		Hostname:       instanceHostname,
 		Status: v1.Status{
-			LifecycleStatus: convertLambdaLabsStatusToV1Status(llInstance.Status),
+			LifecycleStatus: convertLambdaLabsStatusToV1Status(instance.Status),
 		},
-		Location:   llInstance.Region.Name,
+		InstanceType: instance.InstanceType.Name,
+		VolumeType:   "ssd",
+		DiskSize:     units.GiB * units.Base2Bytes(instance.InstanceType.Specs.StorageGib),
+		FirewallRules: v1.FirewallRules{
+			IngressRules: []v1.FirewallRule{generateFirewallRouteFromPort(22), generateFirewallRouteFromPort(2222)}, // TODO pull from api
+			EgressRules:  []v1.FirewallRule{generateFirewallRouteFromPort(22), generateFirewallRouteFromPort(2222)}, // TODO pull from api
+		},
 		SSHUser:    "ubuntu",
 		SSHPort:    22,
 		Stoppable:  false,
 		Rebootable: true,
+		Location:   instance.Region.Name,
+	}
+	inst.InstanceTypeID = v1.MakeGenericInstanceTypeIDFromInstance(inst)
+	return &inst
+}
+
+func generateFirewallRouteFromPort(port int32) v1.FirewallRule {
+	return v1.FirewallRule{
+		FromPort: port,
+		ToPort:   port,
+		IPRanges: []string{"0.0.0.0/0"},
 	}
 }
 

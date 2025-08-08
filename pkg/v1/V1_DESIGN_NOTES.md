@@ -44,3 +44,10 @@ The terminology around instance-attached storage is one of the more confusing pa
 - Some clouds (e.g. AWS) treat root and attached volumes differently (with separate APIs).
 - Others (e.g. Lambda) don’t expose volumes at all — only a total storage value.
 - Elastic volumes, ephemeral disks, and NVMe local storage are not modeled cleanly in v1.
+
+### Cluster Support Limitations
+- The v1 design is fundamentally instance-centric and not conducive to cluster support.
+- No abstractions for cluster-level operations, networking, or orchestration.
+- Instance management is treated as individual resources rather than as part of a larger distributed system.
+- Missing concepts like cluster membership, inter-instance communication, shared state, or cluster lifecycle management.
+- For support to be added we may need to more fomally implement networks/vpcs or instance groups.

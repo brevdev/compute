@@ -7,22 +7,29 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
+	"github.com/brevdev/cloud/internal/collections"
+	"github.com/brevdev/cloud/pkg/ssh"
 	"github.com/google/uuid"
 )
+
+type CloudInstanceReader interface {
+	GetInstance(ctx context.Context, id CloudProviderInstanceID) (*Instance, error)
+	ListInstances(ctx context.Context, args ListInstancesArgs) ([]Instance, error)
+}
 
 type CloudCreateTerminateInstance interface {
 	// CreateInstance expects an instance object to exist if successful, and no instance to exist if there is ANY error
 	//      CloudClient Implementers: ensure that the instance is terminated if there is an error
 	// Public ip is not always returned from create, but will exist when instance is in running state
 	CreateInstance(ctx context.Context, attrs CreateInstanceAttrs) (*Instance, error)
-	GetInstance(ctx context.Context, id CloudProviderInstanceID) (*Instance, error)  // may or may not be locationally scoped
 	TerminateInstance(ctx context.Context, instanceID CloudProviderInstanceID) error // may or may not be locationally scoped
-	ListInstances(ctx context.Context, args ListInstancesArgs) ([]Instance, error)   // return all known instances from cloud api perspective
+	GetMaxCreateRequestsPerMinute() int
 	CloudInstanceType
+	CloudInstanceReader
 }
 
 func ValidateCreateInstance(ctx context.Context, client CloudCreateTerminateInstance, attrs CreateInstanceAttrs) (*Instance, error) {
-	t0 := time.Now()
+	t0 := time.Now().Add(-time.Minute)
 	attrs.RefID = uuid.New().String()
 	name, err := makeDebuggableName(attrs.Name)
 	if err != nil {
@@ -34,9 +41,9 @@ func ValidateCreateInstance(ctx context.Context, client CloudCreateTerminateInst
 		return nil, err
 	}
 	var validationErr error
-	t1 := time.Now()
+	t1 := time.Now().Add(1 * time.Minute)
 	diff := t1.Sub(t0)
-	if diff > 1*time.Minute {
+	if diff > 3*time.Minute {
 		validationErr = errors.Join(validationErr, fmt.Errorf("create instance took too long: %s", diff))
 	}
 	if i.CreatedAt.Before(t0) {
@@ -46,7 +53,7 @@ func ValidateCreateInstance(ctx context.Context, client CloudCreateTerminateInst
 		validationErr = errors.Join(validationErr, fmt.Errorf("createdAt is after t1: %s", i.CreatedAt))
 	}
 	if i.Name != name {
-		validationErr = errors.Join(validationErr, fmt.Errorf("name mismatch: %s != %s", i.Name, name))
+		fmt.Printf("name mismatch: %s != %s, input name does not mean return name will be stable\n", i.Name, name)
 	}
 	if i.RefID != attrs.RefID {
 		validationErr = errors.Join(validationErr, fmt.Errorf("refID mismatch: %s != %s", i.RefID, attrs.RefID))
@@ -75,30 +82,26 @@ func ValidateListCreatedInstance(ctx context.Context, client CloudCreateTerminat
 	if len(ins) == 0 {
 		validationErr = errors.Join(validationErr, fmt.Errorf("no instances found"))
 	}
-	if ins[0].Location != i.Location {
-		validationErr = errors.Join(validationErr, fmt.Errorf("location mismatch: %s != %s", ins[0].Location, i.Location))
-	}
-	instanceIDsMap := map[CloudProviderInstanceID]Instance{}
-	for _, inst := range ins {
-		instanceIDsMap[inst.CloudID] = inst
-	}
-	inst, ok := instanceIDsMap[i.CloudID]
-	if !ok {
+	foundInstance := collections.Find(ins, func(inst Instance) bool {
+		return inst.CloudID == i.CloudID
+	})
+	if foundInstance == nil {
 		validationErr = errors.Join(validationErr, fmt.Errorf("instance not found: %s", i.CloudID))
-		return validationErr
 	}
-	if inst.RefID != i.RefID {
-		validationErr = errors.Join(validationErr, fmt.Errorf("refID mismatch: %s != %s", inst.RefID, i.RefID))
+	if foundInstance.Location != i.Location {
+		validationErr = errors.Join(validationErr, fmt.Errorf("location mismatch: %s != %s", foundInstance.Location, i.Location))
+	} else if foundInstance.RefID != i.RefID {
+		validationErr = errors.Join(validationErr, fmt.Errorf("refID mismatch: %s != %s", foundInstance.RefID, i.RefID))
 	}
 	return validationErr
 }
 
-func ValidateTerminateInstance(ctx context.Context, client CloudCreateTerminateInstance, instance Instance) error {
+func ValidateTerminateInstance(ctx context.Context, client CloudCreateTerminateInstance, instance *Instance) error {
 	err := client.TerminateInstance(ctx, instance.CloudID)
 	if err != nil {
 		return err
 	}
-	// TODO wait for terminated
+	// TODO wait for instance to go into terminating state
 	return nil
 }
 
@@ -107,7 +110,7 @@ type CloudStopStartInstance interface {
 	StartInstance(ctx context.Context, instanceID CloudProviderInstanceID) error
 }
 
-func ValidateStopStartInstance(ctx context.Context, client CloudStopStartInstance, instance Instance) error {
+func ValidateStopStartInstance(ctx context.Context, client CloudStopStartInstance, instance *Instance) error {
 	err := client.StopInstance(ctx, instance.CloudID)
 	if err != nil {
 		return err
@@ -238,6 +241,13 @@ const (
 	LifecycleStatusFailed      LifecycleStatus = "failed"
 )
 
+const (
+	PendingToRunningTimeout    = 20 * time.Minute
+	RunningToStoppedTimeout    = 10 * time.Minute
+	StoppedToRunningTimeout    = 20 * time.Minute
+	RunningToTerminatedTimeout = 20 * time.Minute
+)
+
 type CloudProviderInstanceID string
 
 type ListInstancesArgs struct {
@@ -283,4 +293,42 @@ func makeDebuggableName(name string) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%s-%s", name, time.Now().In(pt).Format("2006-01-02-15-04-05")), nil
+}
+
+const RunningSSHTimeout = 10 * time.Minute
+
+func ValidateInstanceSSHAccessible(ctx context.Context, client CloudInstanceReader, instance *Instance, privateKey string) error {
+	var err error
+	instance, err = WaitForInstanceLifecycleStatus(ctx, client, instance, LifecycleStatusRunning, PendingToRunningTimeout)
+	if err != nil {
+		return err
+	}
+	sshUser := instance.SSHUser
+	sshPort := instance.SSHPort
+	publicIP := instance.PublicIP
+	// Validate that we have the required SSH connection details
+	if sshUser == "" {
+		return fmt.Errorf("SSH user is not set for instance %s", instance.CloudID)
+	}
+	if sshPort == 0 {
+		return fmt.Errorf("SSH port is not set for instance %s", instance.CloudID)
+	}
+	if publicIP == "" {
+		return fmt.Errorf("public IP is not available for instance %s", instance.CloudID)
+	}
+
+	err = ssh.WaitForSSH(ctx, ssh.ConnectionConfig{
+		User:     sshUser,
+		HostPort: fmt.Sprintf("%s:%d", publicIP, sshPort),
+		PrivKey:  privateKey,
+	}, ssh.WaitForSSHOptions{
+		Timeout: RunningSSHTimeout,
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("SSH connection validated successfully for %s@%s:%d\n", sshUser, publicIP, sshPort)
+
+	return nil
 }

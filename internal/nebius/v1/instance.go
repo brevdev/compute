@@ -3,7 +3,7 @@ package v1
 import (
 	"context"
 
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 func (c *NebiusClient) CreateInstance(_ context.Context, _ v1.CreateInstanceAttrs) (*v1.Instance, error) {

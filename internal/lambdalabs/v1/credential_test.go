@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 func TestLambdaLabsCredential_GetReferenceID(t *testing.T) {
@@ -26,7 +26,7 @@ func TestLambdaLabsCredential_GetAPIType(t *testing.T) {
 
 func TestLambdaLabsCredential_GetCloudProviderID(t *testing.T) {
 	cred := &LambdaLabsCredential{}
-	assert.Equal(t, v1.CloudProviderID("lambdalabs"), cred.GetCloudProviderID())
+	assert.Equal(t, v1.CloudProviderID("lambda-labs"), cred.GetCloudProviderID())
 }
 
 func TestLambdaLabsCredential_GetTenantID(t *testing.T) {

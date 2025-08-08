@@ -34,6 +34,9 @@ jobs:
     - name: Run checks (lint, vet, fmt-check, test)
       run: make check
       
+    # Note: Validation tests with real cloud providers run in separate workflows
+    # See .github/workflows/validation-*.yml for provider-specific validation tests
+      
     - name: Run security scan
       run: make security
       continue-on-error: true

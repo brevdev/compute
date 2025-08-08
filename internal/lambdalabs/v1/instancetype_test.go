@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 func TestLambdaLabsClient_GetInstanceTypes_Success(t *testing.T) {
@@ -24,7 +24,9 @@ func TestLambdaLabsClient_GetInstanceTypes_Success(t *testing.T) {
 
 	instanceTypes, err := client.GetInstanceTypes(context.Background(), v1.GetInstanceTypeArgs{})
 	require.NoError(t, err)
-	assert.Len(t, instanceTypes, 3)
+	locations, err := getLambdaLabsLocations()
+	require.NoError(t, err)
+	assert.Len(t, instanceTypes, len(locations)*2)
 
 	a10Type := findInstanceTypeByName(instanceTypes, "gpu_1x_a10")
 	require.NotNil(t, a10Type)
@@ -33,7 +35,7 @@ func TestLambdaLabsClient_GetInstanceTypes_Success(t *testing.T) {
 	assert.Len(t, a10Type.SupportedGPUs, 1)
 	assert.Equal(t, int32(1), a10Type.SupportedGPUs[0].Count)
 	assert.Equal(t, "NVIDIA", a10Type.SupportedGPUs[0].Manufacturer)
-	assert.Equal(t, "NVIDIA A10", a10Type.SupportedGPUs[0].Name)
+	assert.Equal(t, "A10", a10Type.SupportedGPUs[0].Name)
 }
 
 func TestLambdaLabsClient_GetInstanceTypes_FilterByLocation(t *testing.T) {
@@ -48,7 +50,7 @@ func TestLambdaLabsClient_GetInstanceTypes_FilterByLocation(t *testing.T) {
 		Locations: v1.LocationsFilter{"us-west-1"},
 	})
 	require.NoError(t, err)
-	assert.Len(t, instanceTypes, 1)
+	assert.Len(t, instanceTypes, 2)
 
 	for _, instanceType := range instanceTypes {
 		assert.Equal(t, "us-west-1", instanceType.Location)
@@ -67,7 +69,9 @@ func TestLambdaLabsClient_GetInstanceTypes_FilterByInstanceType(t *testing.T) {
 		InstanceTypes: []string{"gpu_1x_a10"},
 	})
 	require.NoError(t, err)
-	assert.Len(t, instanceTypes, 2)
+	locations, err := getLambdaLabsLocations()
+	require.NoError(t, err)
+	assert.Len(t, instanceTypes, len(locations))
 
 	for _, instanceType := range instanceTypes {
 		assert.Equal(t, "gpu_1x_a10", instanceType.Type)
@@ -165,40 +169,34 @@ func TestParseGPUFromDescription(t *testing.T) {
 		expected    v1.GPU
 	}{
 		{
-			description: "1x NVIDIA A10 (24 GB)",
+			description: "1x H100 (80 GB SXM5)",
 			expected: v1.GPU{
-				Count:        1,
-				Manufacturer: "NVIDIA",
-				Name:         "NVIDIA A10",
-				Type:         "NVIDIA A10",
-				Memory:       24 * 1024 * 1024 * 1024,
+				Count:          1,
+				Manufacturer:   "NVIDIA",
+				Name:           "H100",
+				Type:           "H100.SXM5",
+				Memory:         80 * 1024 * 1024 * 1024,
+				NetworkDetails: "80 GB SXM5",
+				MemoryDetails:  "80 GB",
 			},
 		},
 		{
-			description: "8x NVIDIA H100 (80 GB)",
+			description: "8x Tesla V100 (16 GB)",
 			expected: v1.GPU{
-				Count:        8,
-				Manufacturer: "NVIDIA",
-				Name:         "NVIDIA H100",
-				Type:         "NVIDIA H100",
-				Memory:       80 * 1024 * 1024 * 1024,
-			},
-		},
-		{
-			description: "4x NVIDIA RTX 4090 (24 GB)",
-			expected: v1.GPU{
-				Count:        4,
-				Manufacturer: "NVIDIA",
-				Name:         "NVIDIA RTX 4090",
-				Type:         "NVIDIA RTX 4090",
-				Memory:       24 * 1024 * 1024 * 1024,
+				Count:         8,
+				Manufacturer:  "NVIDIA",
+				Name:          "V100",
+				Type:          "V100",
+				Memory:        16 * 1024 * 1024 * 1024,
+				MemoryDetails: "16 GB",
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			gpu := parseGPUFromDescription(tt.description)
+			gpu, err := parseGPUFromDescription(tt.description)
+			require.NoError(t, err)
 			assert.Equal(t, tt.expected.Count, gpu.Count)
 			assert.Equal(t, tt.expected.Manufacturer, gpu.Manufacturer)
 			assert.Equal(t, tt.expected.Name, gpu.Name)
@@ -212,14 +210,14 @@ func createMockInstanceTypeResponse() openapi.InstanceTypes200Response {
 	return openapi.InstanceTypes200Response{
 		Data: map[string]openapi.InstanceTypes200ResponseDataValue{
 			"gpu_1x_a10": {
-				InstanceType: createMockLambdaLabsInstanceType("gpu_1x_a10", "1x NVIDIA A10 (24 GB)", "NVIDIA A10", 100),
+				InstanceType: createMockLambdaLabsInstanceType("gpu_1x_a10", "1x A10 (24 GB)", "A10", 100),
 				RegionsWithCapacityAvailable: []openapi.Region{
 					createMockRegion("us-west-1", "US West 1"),
 					createMockRegion("us-east-1", "US East 1"),
 				},
 			},
 			"gpu_8x_h100": {
-				InstanceType: createMockLambdaLabsInstanceType("gpu_8x_h100", "8x NVIDIA H100 (80 GB)", "NVIDIA H100", 3200),
+				InstanceType: createMockLambdaLabsInstanceType("gpu_8x_h100", "8x H100 (80 GB SXM5)", "H100", 3200),
 				RegionsWithCapacityAvailable: []openapi.Region{
 					createMockRegion("us-east-1", "US East 1"),
 				},
