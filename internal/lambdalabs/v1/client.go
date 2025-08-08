@@ -5,9 +5,11 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"net/http"
+	"time"
 
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
 	v1 "github.com/brevdev/cloud/pkg/v1"
+	"github.com/cenkalti/backoff/v4"
 )
 
 // LambdaLabsCredential implements the CloudCredential interface for Lambda Labs
@@ -117,4 +119,11 @@ func (c *LambdaLabsClient) makeAuthContext(ctx context.Context) context.Context 
 	return context.WithValue(ctx, openapi.ContextBasicAuth, openapi.BasicAuth{
 		UserName: c.apiKey,
 	})
+}
+
+func getBackoff() backoff.BackOff {
+	bo := backoff.NewExponentialBackOff()
+	bo.InitialInterval = 1000 * time.Millisecond
+	bo.MaxElapsedTime = 120 * time.Second
+	return bo
 }

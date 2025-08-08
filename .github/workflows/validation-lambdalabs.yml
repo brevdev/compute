@@ -9,7 +9,6 @@ on:
   pull_request:
     paths:
       - 'internal/lambdalabs/**'
-      - 'pkg/v1/**'
     branches: [ main ]
 
 jobs:
@@ -44,7 +43,7 @@ jobs:
         LAMBDALABS_API_KEY: ${{ secrets.LAMBDALABS_API_KEY }}
       run: |
         cd internal/lambdalabs
-        go test -v -short=false -timeout=20m ./...
+        go test -v -short=false -timeout=30m ./...
         
     - name: Upload test results
       uses: actions/upload-artifact@v4

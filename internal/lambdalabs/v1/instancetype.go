@@ -90,15 +90,21 @@ func (c *LambdaLabsClient) GetInstanceTypes(ctx context.Context, args v1.GetInst
 }
 
 func (c *LambdaLabsClient) getInstanceTypes(ctx context.Context) (*openapi.InstanceTypes200Response, error) {
-	resp, httpResp, err := c.client.DefaultAPI.InstanceTypes(c.makeAuthContext(ctx)).Execute()
-	if httpResp != nil {
-		defer func() { _ = httpResp.Body.Close() }()
-	}
+	ilr, err := collections.RetryWithDataAndAttemptCount(func() (*openapi.InstanceTypes200Response, error) {
+		res, resp, err := c.client.DefaultAPI.InstanceTypes(c.makeAuthContext(ctx)).Execute()
+		if resp != nil {
+			defer resp.Body.Close() //nolint:errcheck // ignore because using defer (for some reason HandleErrDefer)
+		}
+		if err != nil {
+			return &openapi.InstanceTypes200Response{}, handleAPIError(ctx, resp, err)
+		}
+		return res, nil
+	}, getBackoff())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get instance types: %w", err)
+		return nil, err
 	}
 
-	return resp, nil
+	return ilr, nil
 }
 
 func parseGPUFromDescription(input string) (v1.GPU, error) {

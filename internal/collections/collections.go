@@ -1,5 +1,11 @@
 package collections
 
+import (
+	"fmt"
+
+	"github.com/cenkalti/backoff/v4"
+)
+
 func Flatten[T any](listOfLists [][]T) []T {
 	result := []T{}
 	for _, list := range listOfLists {
@@ -77,4 +83,16 @@ func Filter[T any](list []T, f func(T) bool) []T {
 
 func Ptr[T any](x T) *T {
 	return &x
+}
+
+func RetryWithDataAndAttemptCount[T any](o backoff.OperationWithData[T], b backoff.BackOff) (T, error) {
+	attemptCount := 0
+	t, err := backoff.RetryWithData(func() (T, error) {
+		attemptCount++
+		return o()
+	}, b)
+	if err != nil {
+		return t, fmt.Errorf("attemptCount %d: %w", attemptCount, err)
+	}
+	return t, nil
 }

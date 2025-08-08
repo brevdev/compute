@@ -66,7 +66,7 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 		defer func() { _ = httpResp.Body.Close() }()
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to launch instance: %w", err)
+		return nil, fmt.Errorf("failed to launch instance: %w", handleErrToCloudErr(err))
 	}
 
 	if len(resp.Data.InstanceIds) != 1 {
