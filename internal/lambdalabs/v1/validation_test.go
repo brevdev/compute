@@ -9,10 +9,8 @@ import (
 )
 
 func TestValidationFunctions(t *testing.T) {
-	apiKey := os.Getenv("LAMBDALABS_API_KEY")
-	if apiKey == "" {
-		t.Skip("LAMBDALABS_API_KEY not set, skipping LambdaLabs validation tests")
-	}
+	checkSkip(t)
+	apiKey := getAPIKey()
 
 	config := validation.ProviderConfig{
 		Credential: NewLambdaLabsCredential("validation-test", apiKey),
@@ -23,14 +21,26 @@ func TestValidationFunctions(t *testing.T) {
 }
 
 func TestInstanceLifecycleValidation(t *testing.T) {
-	apiKey := os.Getenv("LAMBDALABS_API_KEY")
-	if apiKey == "" {
-		t.Skip("LAMBDALABS_API_KEY not set, skipping LambdaLabs validation tests")
-	}
+	checkSkip(t)
+	apiKey := getAPIKey()
 
 	config := validation.ProviderConfig{
 		Credential: NewLambdaLabsCredential("validation-test", apiKey),
 	}
 
 	validation.RunInstanceLifecycleValidation(t, config)
+}
+
+func checkSkip(t *testing.T) {
+	apiKey := getAPIKey()
+	isValidationTest := os.Getenv("VALIDATION_TEST")
+	if apiKey == "" && isValidationTest != "" {
+		t.Fatal("LAMBDALABS_API_KEY not set, but VALIDATION_TEST is set")
+	} else if apiKey == "" && isValidationTest == "" {
+		t.Skip("LAMBDALABS_API_KEY not set, skipping LambdaLabs validation tests")
+	}
+}
+
+func getAPIKey() string {
+	return os.Getenv("LAMBDALABS_API_KEY")
 }

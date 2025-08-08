@@ -9,6 +9,7 @@ on:
   pull_request:
     paths:
       - 'internal/lambdalabs/**'
+      - 'pkg/v1/**'
     branches: [ main ]
 
 jobs:
@@ -43,6 +44,7 @@ jobs:
         LAMBDALABS_API_KEY: ${{ secrets.LAMBDALABS_API_KEY }}
         TEST_PRIVATE_KEY_BASE64: ${{ secrets.TEST_PRIVATE_KEY_BASE64 }}
         TEST_PUBLIC_KEY_BASE64: ${{ secrets.TEST_PUBLIC_KEY_BASE64 }}
+        VALIDATION_TEST: true
       run: |
         cd internal/lambdalabs
         go test -v -short=false -timeout=30m ./...
