@@ -3,7 +3,7 @@ package v1
 import (
 	"context"
 
-	v1 "github.com/brevdev/compute/pkg/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 func (c *NebiusClient) GetLocations(_ context.Context, _ v1.GetLocationsArgs) ([]v1.Location, error) {

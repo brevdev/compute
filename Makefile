@@ -3,7 +3,7 @@
 
 # Variables
 BINARY_NAME=compute
-MODULE_NAME=github.com/brevdev/compute
+MODULE_NAME=github.com/brevdev/cloud
 BUILD_DIR=build
 COVERAGE_DIR=coverage
 
