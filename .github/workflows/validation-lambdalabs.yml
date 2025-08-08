@@ -41,6 +41,8 @@ jobs:
     - name: Run LambdaLabs validation tests
       env:
         LAMBDALABS_API_KEY: ${{ secrets.LAMBDALABS_API_KEY }}
+        TEST_PRIVATE_KEY_BASE64: ${{ secrets.TEST_PRIVATE_KEY_BASE64 }}
+        TEST_PUBLIC_KEY_BASE64: ${{ secrets.TEST_PUBLIC_KEY_BASE64 }}
       run: |
         cd internal/lambdalabs
         go test -v -short=false -timeout=30m ./...
