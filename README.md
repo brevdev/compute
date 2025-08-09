@@ -68,6 +68,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 
 ## Documentation
 
+- **[How to Add a Provider](docs/HOW_TO_ADD_A_PROVIDER.md)**: Complete guide for implementing new cloud providers
 - **[V1 Design Notes](pkg/v1/V1_DESIGN_NOTES.md)**: Design decisions, known quirks, and AWS-inspired patterns in the v1 API
 - **[Architecture Overview](docs/ARCHITECTURE.md)**: How the Cloud SDK fits into Brev's overall architecture
 - **[Security Requirements](docs/SECURITY.md)**: Security specifications and implementation requirements
