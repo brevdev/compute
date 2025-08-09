@@ -61,10 +61,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 - **NVIDIA Cloud Partners (NCPs)** looking to offer Brev-compatible GPU compute
 - **Infra teams** building cluster-aware systems or abstractions on raw compute
 - **Cloud providers** interested in contributing to a shared interface for accelerated compute
-
----
-
----
+- **Compute brokers & marketplaces (aggregators)** offering multi-cloud compute
 
 ## Documentation
 

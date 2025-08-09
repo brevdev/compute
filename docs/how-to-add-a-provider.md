@@ -38,6 +38,20 @@ Patterns to follow:
 
 ---
 
+---
+## Compute Brokers & Marketplaces (Aggregators)
+
+This SDK supports providers that aggregate compute from multiple upstream sources (multi-cloud brokers, marketplaces, or exchanges). When implementing an aggregator, use these to differentiate where the compute comes from while keeping the interface consistent:
+
+- Provider (CloudProviderID): Identify your aggregator (e.g., "mybroker"). If you expose underlying vendors, include that metadata on returned resources (e.g., tags/labels) or encode it in stable IDs that you control.
+- Location and SubLocation: Map upstream regions/zones into `Location` and `SubLocation` so users can choose placement consistently across sources. For example, `Location="us-west"` and `SubLocation="vendorA/zone-2"` or `SubLocation="sv15/DC3"` for finer placement.
+- InstanceType IDs: If upstream vendors don’t provide stable, cross-market IDs, generate stable IDs using `MakeGenericInstanceTypeID` and include upstream hints in IDs or metadata. Ensure stability over time to avoid breaking consumers.
+- InstanceType attributes (recommended): Use instance type attributes to delineate behavior differences across upstream sources (e.g., performance, network, storage, locality). There is also a `provider` attribute on the instance type you can use to indicate the originating vendor/source.
+
+Notes:
+- Capabilities represent what your broker can support. Differences between upstream vendors should be reflected in instance type attributes rather than reducing declared capabilities to the lowest common denominator.
+- Keep your `Location`/`SubLocation` stable even if upstream identifiers change; translate upstream → broker-stable naming.
+- Conform to the default-deny inbound model; document any upstream limitations under `internal/{provider}/SECURITY.md`.
 ## Directory Layout
 
 Create a new provider folder:
