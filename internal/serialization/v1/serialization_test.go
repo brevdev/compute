@@ -5,18 +5,22 @@ import (
 	"encoding/json"
 	"testing"
 
+	fluidstackv1 "github.com/brevdev/cloud/internal/fluidstack/v1"
+	lambdalabsv1 "github.com/brevdev/cloud/internal/lambdalabs/v1"
+	nebiusv1 "github.com/brevdev/cloud/internal/nebius/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 type MockCredential struct {
-	providerID CloudProviderID
+	providerID v1.CloudProviderID
 	refID      string
 	tenantID   string
 }
 
-func (m *MockCredential) MakeClient(_ context.Context, _ string) (CloudClient, error) {
-	return nil, ErrNotImplemented
+func (m *MockCredential) MakeClient(_ context.Context, _ string) (v1.CloudClient, error) {
+	return nil, v1.ErrNotImplemented
 }
 
 func (m *MockCredential) GetTenantID() (string, error) {
@@ -27,15 +31,15 @@ func (m *MockCredential) GetReferenceID() string {
 	return m.refID
 }
 
-func (m *MockCredential) GetAPIType() APIType {
-	return APITypeGlobal
+func (m *MockCredential) GetAPIType() v1.APIType {
+	return v1.APITypeGlobal
 }
 
-func (m *MockCredential) GetCapabilities(_ context.Context) (Capabilities, error) {
-	return nil, ErrNotImplemented
+func (m *MockCredential) GetCapabilities(_ context.Context) (v1.Capabilities, error) {
+	return nil, v1.ErrNotImplemented
 }
 
-func (m *MockCredential) GetCloudProviderID() CloudProviderID {
+func (m *MockCredential) GetCloudProviderID() v1.CloudProviderID {
 	return m.providerID
 }
 
@@ -57,8 +61,8 @@ func TestSerializedCredential_Structure(t *testing.T) {
 }
 
 func TestCredentialDataStructures_JSONTags(t *testing.T) {
-	t.Run("LambdaLabsCredentialData", func(t *testing.T) {
-		data := LambdaLabsCredentialData{
+	t.Run("LambdaLabsCredential", func(t *testing.T) {
+		data := lambdalabsv1.LambdaLabsCredential{
 			RefID:  "test-ref",
 			APIKey: "test-key",
 		}
@@ -69,14 +73,14 @@ func TestCredentialDataStructures_JSONTags(t *testing.T) {
 		expected := `{"ref_id":"test-ref","api_key":"test-key"}`
 		assert.JSONEq(t, expected, string(bytes))
 
-		var unmarshaled LambdaLabsCredentialData
+		var unmarshaled lambdalabsv1.LambdaLabsCredential
 		err = json.Unmarshal(bytes, &unmarshaled)
 		require.NoError(t, err)
 		assert.Equal(t, data, unmarshaled)
 	})
 
-	t.Run("FluidStackCredentialData", func(t *testing.T) {
-		data := FluidStackCredentialData{
+	t.Run("FluidStackCredential", func(t *testing.T) {
+		data := fluidstackv1.FluidStackCredential{
 			RefID:  "test-ref",
 			APIKey: "test-key",
 		}
@@ -87,14 +91,14 @@ func TestCredentialDataStructures_JSONTags(t *testing.T) {
 		expected := `{"ref_id":"test-ref","api_key":"test-key"}`
 		assert.JSONEq(t, expected, string(bytes))
 
-		var unmarshaled FluidStackCredentialData
+		var unmarshaled fluidstackv1.FluidStackCredential
 		err = json.Unmarshal(bytes, &unmarshaled)
 		require.NoError(t, err)
 		assert.Equal(t, data, unmarshaled)
 	})
 
-	t.Run("NebiusCredentialData", func(t *testing.T) {
-		data := NebiusCredentialData{
+	t.Run("NebiusCredential", func(t *testing.T) {
+		data := nebiusv1.NebiusCredential{
 			RefID:             "test-ref",
 			ServiceAccountKey: "test-key",
 			ProjectID:         "test-project",
@@ -106,7 +110,7 @@ func TestCredentialDataStructures_JSONTags(t *testing.T) {
 		expected := `{"ref_id":"test-ref","service_account_key":"test-key","project_id":"test-project"}`
 		assert.JSONEq(t, expected, string(bytes))
 
-		var unmarshaled NebiusCredentialData
+		var unmarshaled nebiusv1.NebiusCredential
 		err = json.Unmarshal(bytes, &unmarshaled)
 		require.NoError(t, err)
 		assert.Equal(t, data, unmarshaled)
@@ -124,21 +128,21 @@ func (m *MockSerializableCredential) SerializeData() (interface{}, error) {
 
 func TestSerializeCredentialData(t *testing.T) {
 	t.Run("valid data", func(t *testing.T) {
-		credData := LambdaLabsCredentialData{
+		credData := lambdalabsv1.LambdaLabsCredential{
 			RefID:  "test-ref",
 			APIKey: "test-key",
 		}
 
-		bytes, err := SerializeCredentialData("lambda-labs", credData)
+		bytes, err := SerializeCredentialData(lambdalabsv1.CloudProviderID, credData)
 		require.NoError(t, err)
 
 		var serialized SerializedCredential
 		err = json.Unmarshal(bytes, &serialized)
 		require.NoError(t, err)
 
-		assert.Equal(t, "lambda-labs", serialized.ProviderID)
+		assert.Equal(t, lambdalabsv1.CloudProviderID, serialized.ProviderID)
 
-		var unmarshaled LambdaLabsCredentialData
+		var unmarshaled lambdalabsv1.LambdaLabsCredential
 		err = json.Unmarshal(serialized.Data, &unmarshaled)
 		require.NoError(t, err)
 		assert.Equal(t, credData, unmarshaled)
@@ -152,19 +156,19 @@ func TestSerializeCredentialData(t *testing.T) {
 }
 
 func TestSerializeCredentialDataToString(t *testing.T) {
-	credData := FluidStackCredentialData{
+	credData := fluidstackv1.FluidStackCredential{
 		RefID:  "test-ref",
 		APIKey: "test-key",
 	}
 
-	str, err := SerializeCredentialDataToString("fluidstack", credData)
+	str, err := SerializeCredentialDataToString(fluidstackv1.CloudProviderID, credData)
 	require.NoError(t, err)
 	assert.NotEmpty(t, str)
 
 	var serialized SerializedCredential
 	err = json.Unmarshal([]byte(str), &serialized)
 	require.NoError(t, err)
-	assert.Equal(t, "fluidstack", serialized.ProviderID)
+	assert.Equal(t, fluidstackv1.CloudProviderID, serialized.ProviderID)
 }
 
 func TestSerializeCredential_ErrorCases(t *testing.T) {
@@ -176,7 +180,7 @@ func TestSerializeCredential_ErrorCases(t *testing.T) {
 
 	t.Run("non-serializable credential", func(t *testing.T) {
 		cred := &MockCredential{
-			providerID: "lambda-labs",
+			providerID: lambdalabsv1.CloudProviderID,
 			refID:      "test-ref",
 		}
 
@@ -202,10 +206,10 @@ func TestSerializeCredential_ErrorCases(t *testing.T) {
 	t.Run("valid serializable credential", func(t *testing.T) {
 		cred := &MockSerializableCredential{
 			MockCredential: MockCredential{
-				providerID: "lambda-labs",
+				providerID: lambdalabsv1.CloudProviderID,
 				refID:      "test-ref",
 			},
-			data: LambdaLabsCredentialData{
+			data: lambdalabsv1.LambdaLabsCredential{
 				RefID:  "test-ref",
 				APIKey: "test-key",
 			},
@@ -218,7 +222,7 @@ func TestSerializeCredential_ErrorCases(t *testing.T) {
 		var serialized SerializedCredential
 		err = json.Unmarshal(bytes, &serialized)
 		require.NoError(t, err)
-		assert.Equal(t, "lambda-labs", serialized.ProviderID)
+		assert.Equal(t, lambdalabsv1.CloudProviderID, serialized.ProviderID)
 	})
 }
 
@@ -259,16 +263,17 @@ func TestDeserializeCredential_ErrorCases(t *testing.T) {
 		assert.Contains(t, err.Error(), "unsupported provider: unsupported-provider")
 	})
 
-	t.Run("supported provider but not implemented", func(t *testing.T) {
+	t.Run("supported provider with valid data", func(t *testing.T) {
 		serialized := SerializedCredential{
-			ProviderID: "lambda-labs",
+			ProviderID: lambdalabsv1.CloudProviderID,
 			Data:       json.RawMessage(`{"ref_id": "test", "api_key": "key"}`),
 		}
 		bytes, _ := json.Marshal(serialized)
 
-		_, err := DeserializeCredential(bytes)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "requires import")
+		cred, err := DeserializeCredential(bytes)
+		assert.NoError(t, err)
+		assert.NotNil(t, cred)
+		assert.Equal(t, lambdalabsv1.CloudProviderID, string(cred.GetCloudProviderID()))
 	})
 }
 
@@ -281,37 +286,40 @@ func TestDeserializeCredentialFromString(t *testing.T) {
 func TestDeserializeCredentialByProvider(t *testing.T) {
 	t.Run("lambda-labs with valid data", func(t *testing.T) {
 		data := json.RawMessage(`{"ref_id": "test-ref", "api_key": "test-key"}`)
-		_, err := DeserializeCredentialByProvider("lambda-labs", data)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "requires import")
+		cred, err := DeserializeCredentialByProvider(lambdalabsv1.CloudProviderID, data)
+		assert.NoError(t, err)
+		assert.NotNil(t, cred)
+		assert.Equal(t, lambdalabsv1.CloudProviderID, string(cred.GetCloudProviderID()))
 	})
 
 	t.Run("lambda-labs with missing ref_id", func(t *testing.T) {
 		data := json.RawMessage(`{"api_key": "test-key"}`)
-		_, err := DeserializeCredentialByProvider("lambda-labs", data)
+		_, err := DeserializeCredentialByProvider(lambdalabsv1.CloudProviderID, data)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "must have a reference ID")
 	})
 
 	t.Run("lambda-labs with missing api_key", func(t *testing.T) {
 		data := json.RawMessage(`{"ref_id": "test-ref"}`)
-		_, err := DeserializeCredentialByProvider("lambda-labs", data)
+		_, err := DeserializeCredentialByProvider(lambdalabsv1.CloudProviderID, data)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "must have an API key")
 	})
 
 	t.Run("fluidstack with valid data", func(t *testing.T) {
 		data := json.RawMessage(`{"ref_id": "test-ref", "api_key": "test-key"}`)
-		_, err := DeserializeCredentialByProvider("fluidstack", data)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "requires import")
+		cred, err := DeserializeCredentialByProvider(fluidstackv1.CloudProviderID, data)
+		assert.NoError(t, err)
+		assert.NotNil(t, cred)
+		assert.Equal(t, fluidstackv1.CloudProviderID, string(cred.GetCloudProviderID()))
 	})
 
 	t.Run("nebius with valid data", func(t *testing.T) {
 		data := json.RawMessage(`{"ref_id": "test-ref", "service_account_key": "test-key", "project_id": "test-project"}`)
-		_, err := DeserializeCredentialByProvider("nebius", data)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "requires import")
+		cred, err := DeserializeCredentialByProvider("nebius", data)
+		assert.NoError(t, err)
+		assert.NotNil(t, cred)
+		assert.Equal(t, "nebius", string(cred.GetCloudProviderID()))
 	})
 
 	t.Run("nebius with missing project_id", func(t *testing.T) {
@@ -323,7 +331,7 @@ func TestDeserializeCredentialByProvider(t *testing.T) {
 
 	t.Run("invalid JSON", func(t *testing.T) {
 		data := json.RawMessage(`invalid json`)
-		_, err := DeserializeCredentialByProvider("lambda-labs", data)
+		_, err := DeserializeCredentialByProvider(lambdalabsv1.CloudProviderID, data)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to unmarshal")
 	})
@@ -338,16 +346,16 @@ func TestRoundTripSerialization(t *testing.T) {
 		}{
 			{
 				name:       "lambda-labs",
-				providerID: "lambda-labs",
-				data: LambdaLabsCredentialData{
+				providerID: lambdalabsv1.CloudProviderID,
+				data: lambdalabsv1.LambdaLabsCredential{
 					RefID:  "test-ref",
 					APIKey: "test-key",
 				},
 			},
 			{
 				name:       "fluidstack",
-				providerID: "fluidstack",
-				data: FluidStackCredentialData{
+				providerID: fluidstackv1.CloudProviderID,
+				data: fluidstackv1.FluidStackCredential{
 					RefID:  "test-ref",
 					APIKey: "test-key",
 				},
@@ -355,7 +363,7 @@ func TestRoundTripSerialization(t *testing.T) {
 			{
 				name:       "nebius",
 				providerID: "nebius",
-				data: NebiusCredentialData{
+				data: nebiusv1.NebiusCredential{
 					RefID:             "test-ref",
 					ServiceAccountKey: "test-key",
 					ProjectID:         "test-project",
@@ -375,18 +383,18 @@ func TestRoundTripSerialization(t *testing.T) {
 				assert.Equal(t, tc.providerID, wrapper.ProviderID)
 
 				switch tc.providerID {
-				case "lambda-labs":
-					var data LambdaLabsCredentialData
+				case lambdalabsv1.CloudProviderID:
+					var data lambdalabsv1.LambdaLabsCredential
 					err = json.Unmarshal(wrapper.Data, &data)
 					require.NoError(t, err)
 					assert.Equal(t, tc.data, data)
-				case "fluidstack":
-					var data FluidStackCredentialData
+				case fluidstackv1.CloudProviderID:
+					var data fluidstackv1.FluidStackCredential
 					err = json.Unmarshal(wrapper.Data, &data)
 					require.NoError(t, err)
 					assert.Equal(t, tc.data, data)
 				case "nebius":
-					var data NebiusCredentialData
+					var data nebiusv1.NebiusCredential
 					err = json.Unmarshal(wrapper.Data, &data)
 					require.NoError(t, err)
 					assert.Equal(t, tc.data, data)

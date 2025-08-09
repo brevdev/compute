@@ -14,8 +14,8 @@ const CloudProviderID = "fluidstack"
 
 // FluidStackCredential implements the CloudCredential interface for FluidStack
 type FluidStackCredential struct {
-	RefID  string
-	APIKey string
+	RefID  string `json:"ref_id"`
+	APIKey string `json:"api_key"`
 }
 
 var _ v1.CloudCredential = &FluidStackCredential{}

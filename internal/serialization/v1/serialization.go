@@ -3,6 +3,11 @@ package v1
 import (
 	"encoding/json"
 	"fmt"
+
+	fluidstackv1 "github.com/brevdev/cloud/internal/fluidstack/v1"
+	lambdalabsv1 "github.com/brevdev/cloud/internal/lambdalabs/v1"
+	nebiusv1 "github.com/brevdev/cloud/internal/nebius/v1"
+	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
 type SerializedCredential struct {
@@ -10,26 +15,8 @@ type SerializedCredential struct {
 	Data       json.RawMessage `json:"data"`
 }
 
-type LambdaLabsCredentialData struct {
-	RefID  string `json:"ref_id"`
-	APIKey string `json:"api_key"`
-}
-
-type FluidStackCredentialData struct {
-	RefID  string `json:"ref_id"`
-	APIKey string `json:"api_key"`
-}
-
-type NebiusCredentialData struct {
-	RefID             string `json:"ref_id"`
-	ServiceAccountKey string `json:"service_account_key"`
-	ProjectID         string `json:"project_id"`
-}
-
-type CredentialConstructor func(data json.RawMessage) (CloudCredential, error)
-
 type SerializableCredential interface {
-	CloudCredential
+	v1.CloudCredential
 	SerializeData() (interface{}, error)
 }
 
@@ -63,7 +50,7 @@ func SerializeCredentialDataToJSON(providerID string, credData interface{}) ([]b
 	return SerializeCredentialData(providerID, credData)
 }
 
-func SerializeCredential(cred CloudCredential) ([]byte, error) {
+func SerializeCredential(cred v1.CloudCredential) ([]byte, error) {
 	if cred == nil {
 		return nil, fmt.Errorf("credential cannot be nil")
 	}
@@ -86,7 +73,7 @@ func SerializeCredential(cred CloudCredential) ([]byte, error) {
 	return SerializeCredentialData(providerID, credData)
 }
 
-func SerializeCredentialToString(cred CloudCredential) (string, error) {
+func SerializeCredentialToString(cred v1.CloudCredential) (string, error) {
 	bytes, err := SerializeCredential(cred)
 	if err != nil {
 		return "", err
@@ -94,11 +81,11 @@ func SerializeCredentialToString(cred CloudCredential) (string, error) {
 	return string(bytes), nil
 }
 
-func SerializeCredentialToJSON(cred CloudCredential) ([]byte, error) {
+func SerializeCredentialToJSON(cred v1.CloudCredential) ([]byte, error) {
 	return SerializeCredential(cred)
 }
 
-func DeserializeCredential(data []byte) (CloudCredential, error) {
+func DeserializeCredential(data []byte) (v1.CloudCredential, error) {
 	if len(data) == 0 {
 		return nil, fmt.Errorf("data cannot be empty")
 	}
@@ -115,19 +102,19 @@ func DeserializeCredential(data []byte) (CloudCredential, error) {
 	return DeserializeCredentialByProvider(serialized.ProviderID, serialized.Data)
 }
 
-func DeserializeCredentialFromString(data string) (CloudCredential, error) {
+func DeserializeCredentialFromString(data string) (v1.CloudCredential, error) {
 	return DeserializeCredential([]byte(data))
 }
 
-func DeserializeCredentialFromJSON(data []byte) (CloudCredential, error) {
+func DeserializeCredentialFromJSON(data []byte) (v1.CloudCredential, error) {
 	return DeserializeCredential(data)
 }
 
-func DeserializeCredentialByProvider(providerID string, data json.RawMessage) (CloudCredential, error) {
+func DeserializeCredentialByProvider(providerID string, data json.RawMessage) (v1.CloudCredential, error) {
 	switch providerID {
-	case "lambda-labs":
+	case lambdalabsv1.CloudProviderID:
 		return DeserializeLambdaLabsCredential(data)
-	case "fluidstack":
+	case fluidstackv1.CloudProviderID:
 		return DeserializeFluidStackCredential(data)
 	case "nebius":
 		return DeserializeNebiusCredential(data)
@@ -136,8 +123,8 @@ func DeserializeCredentialByProvider(providerID string, data json.RawMessage) (C
 	}
 }
 
-func DeserializeLambdaLabsCredential(data json.RawMessage) (CloudCredential, error) {
-	var credData LambdaLabsCredentialData
+func DeserializeLambdaLabsCredential(data json.RawMessage) (v1.CloudCredential, error) {
+	var credData lambdalabsv1.LambdaLabsCredential
 	if err := json.Unmarshal(data, &credData); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal lambda labs credential data: %w", err)
 	}
@@ -150,11 +137,11 @@ func DeserializeLambdaLabsCredential(data json.RawMessage) (CloudCredential, err
 		return nil, fmt.Errorf("lambda labs credential must have an API key")
 	}
 
-	return nil, fmt.Errorf("lambda labs credential construction requires import of internal/lambdalabs/v1 package")
+	return &credData, nil
 }
 
-func DeserializeFluidStackCredential(data json.RawMessage) (CloudCredential, error) {
-	var credData FluidStackCredentialData
+func DeserializeFluidStackCredential(data json.RawMessage) (v1.CloudCredential, error) {
+	var credData fluidstackv1.FluidStackCredential
 	if err := json.Unmarshal(data, &credData); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal fluidstack credential data: %w", err)
 	}
@@ -167,11 +154,11 @@ func DeserializeFluidStackCredential(data json.RawMessage) (CloudCredential, err
 		return nil, fmt.Errorf("fluidstack credential must have an API key")
 	}
 
-	return nil, fmt.Errorf("fluidstack credential construction requires import of internal/fluidstack/v1 package")
+	return &credData, nil
 }
 
-func DeserializeNebiusCredential(data json.RawMessage) (CloudCredential, error) {
-	var credData NebiusCredentialData
+func DeserializeNebiusCredential(data json.RawMessage) (v1.CloudCredential, error) {
+	var credData nebiusv1.NebiusCredential
 	if err := json.Unmarshal(data, &credData); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal nebius credential data: %w", err)
 	}
@@ -188,5 +175,5 @@ func DeserializeNebiusCredential(data json.RawMessage) (CloudCredential, error) 
 		return nil, fmt.Errorf("nebius credential must have a project ID")
 	}
 
-	return nil, fmt.Errorf("nebius credential construction requires import of internal/nebius/v1 package")
+	return &credData, nil
 }
