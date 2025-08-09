@@ -15,7 +15,7 @@ An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerat
   - `InstanceType`
   - `Location`
 
-- Enable **clusterable GPU workloads** across multiple providers, with shared semantics and L3 network guarantees.
+- Enable **clusterable GPU workloads** across multiple providers, with shared semantics and L3 network guarantees. (WIP)
 - Provide a foundation for Brev's `launchables`, `instances`, and provisioning flows.
 
 ---
