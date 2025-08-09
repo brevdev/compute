@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
+	"github.com/brevdev/cloud/internal/collections"
 	openapi "github.com/brevdev/cloud/internal/lambdalabs/gen/lambdalabs"
 	v1 "github.com/brevdev/cloud/pkg/v1"
 )
@@ -27,10 +28,7 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 			Name:      keyPairName,
 			PublicKey: &attrs.PublicKey,
 		}
-		keyPairResp, resp, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(request).Execute()
-		if resp != nil {
-			defer func() { _ = resp.Body.Close() }()
-		}
+		keyPairResp, err := c.addSSHKey(ctx, request)
 		if err != nil && !strings.Contains(err.Error(), "name must be unique") {
 			return nil, fmt.Errorf("failed to add SSH key: %w", err)
 		}
@@ -61,10 +59,7 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 
 	request.Name = *openapi.NewNullableString(&name)
 
-	resp, httpResp, err := c.client.DefaultAPI.LaunchInstance(c.makeAuthContext(ctx)).LaunchInstanceRequest(request).Execute()
-	if httpResp != nil {
-		defer func() { _ = httpResp.Body.Close() }()
-	}
+	resp, err := c.launchInstance(ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to launch instance: %w", handleErrToCloudErr(err))
 	}
@@ -80,10 +75,7 @@ func (c *LambdaLabsClient) CreateInstance(ctx context.Context, attrs v1.CreateIn
 // GetInstance retrieves an instance by ID
 // Supported via: GET /api/v1/instances/{id}
 func (c *LambdaLabsClient) GetInstance(ctx context.Context, instanceID v1.CloudProviderInstanceID) (*v1.Instance, error) {
-	resp, httpResp, err := c.client.DefaultAPI.GetInstance(c.makeAuthContext(ctx), string(instanceID)).Execute()
-	if httpResp != nil {
-		defer func() { _ = httpResp.Body.Close() }()
-	}
+	resp, err := c.getInstance(ctx, string(instanceID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get instance: %w", err)
 	}
@@ -98,10 +90,7 @@ func (c *LambdaLabsClient) TerminateInstance(ctx context.Context, instanceID v1.
 		InstanceIds: []string{string(instanceID)},
 	}
 
-	_, httpResp, err := c.client.DefaultAPI.TerminateInstance(c.makeAuthContext(ctx)).TerminateInstanceRequest(request).Execute()
-	if httpResp != nil {
-		defer func() { _ = httpResp.Body.Close() }()
-	}
+	_, err := c.terminateInstance(ctx, request)
 	if err != nil {
 		return fmt.Errorf("failed to terminate instance: %w", err)
 	}
@@ -112,10 +101,7 @@ func (c *LambdaLabsClient) TerminateInstance(ctx context.Context, instanceID v1.
 // ListInstances lists all instances
 // Supported via: GET /api/v1/instances
 func (c *LambdaLabsClient) ListInstances(ctx context.Context, _ v1.ListInstancesArgs) ([]v1.Instance, error) {
-	resp, httpResp, err := c.client.DefaultAPI.ListInstances(c.makeAuthContext(ctx)).Execute()
-	if httpResp != nil {
-		defer func() { _ = httpResp.Body.Close() }()
-	}
+	resp, err := c.listInstances(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list instances: %w", err)
 	}
@@ -136,10 +122,7 @@ func (c *LambdaLabsClient) RebootInstance(ctx context.Context, instanceID v1.Clo
 		InstanceIds: []string{string(instanceID)},
 	}
 
-	_, httpResp, err := c.client.DefaultAPI.RestartInstance(c.makeAuthContext(ctx)).RestartInstanceRequest(request).Execute()
-	if httpResp != nil {
-		defer func() { _ = httpResp.Body.Close() }()
-	}
+	_, err := c.restartInstance(ctx, request)
 	if err != nil {
 		return fmt.Errorf("failed to reboot instance: %w", err)
 	}
@@ -243,4 +226,106 @@ func (c *LambdaLabsClient) MergeInstanceForUpdate(_ v1.Instance, newInst v1.Inst
 
 func (c *LambdaLabsClient) MergeInstanceTypeForUpdate(_ v1.InstanceType, newIt v1.InstanceType) v1.InstanceType {
 	return newIt
+}
+
+func (c *LambdaLabsClient) addSSHKey(ctx context.Context, request openapi.AddSSHKeyRequest) (*openapi.AddSSHKey200Response, error) {
+	result, err := collections.RetryWithDataAndAttemptCount(func() (*openapi.AddSSHKey200Response, error) {
+		res, resp, err := c.client.DefaultAPI.AddSSHKey(c.makeAuthContext(ctx)).AddSSHKeyRequest(request).Execute()
+		if resp != nil {
+			defer resp.Body.Close() //nolint:errcheck // ignore because using defer (for some reason HandleErrDefer)
+		}
+		if err != nil {
+			return &openapi.AddSSHKey200Response{}, handleAPIError(ctx, resp, err)
+		}
+		return res, nil
+	}, getBackoff())
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (c *LambdaLabsClient) launchInstance(ctx context.Context, request openapi.LaunchInstanceRequest) (*openapi.LaunchInstance200Response, error) {
+	result, err := collections.RetryWithDataAndAttemptCount(func() (*openapi.LaunchInstance200Response, error) {
+		res, resp, err := c.client.DefaultAPI.LaunchInstance(c.makeAuthContext(ctx)).LaunchInstanceRequest(request).Execute()
+		if resp != nil {
+			defer resp.Body.Close() //nolint:errcheck // ignore because using defer (for some reason HandleErrDefer)
+		}
+		if err != nil {
+			return &openapi.LaunchInstance200Response{}, handleAPIError(ctx, resp, err)
+		}
+		return res, nil
+	}, getBackoff())
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (c *LambdaLabsClient) getInstance(ctx context.Context, instanceID string) (*openapi.GetInstance200Response, error) {
+	result, err := collections.RetryWithDataAndAttemptCount(func() (*openapi.GetInstance200Response, error) {
+		res, resp, err := c.client.DefaultAPI.GetInstance(c.makeAuthContext(ctx), instanceID).Execute()
+		if resp != nil {
+			defer resp.Body.Close() //nolint:errcheck // ignore because using defer (for some reason HandleErrDefer)
+		}
+		if err != nil {
+			return &openapi.GetInstance200Response{}, handleAPIError(ctx, resp, err)
+		}
+		return res, nil
+	}, getBackoff())
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (c *LambdaLabsClient) terminateInstance(ctx context.Context, request openapi.TerminateInstanceRequest) (*openapi.TerminateInstance200Response, error) {
+	result, err := collections.RetryWithDataAndAttemptCount(func() (*openapi.TerminateInstance200Response, error) {
+		res, resp, err := c.client.DefaultAPI.TerminateInstance(c.makeAuthContext(ctx)).TerminateInstanceRequest(request).Execute()
+		if resp != nil {
+			defer resp.Body.Close() //nolint:errcheck // ignore because using defer (for some reason HandleErrDefer)
+		}
+		if err != nil {
+			return &openapi.TerminateInstance200Response{}, handleAPIError(ctx, resp, err)
+		}
+		return res, nil
+	}, getBackoff())
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (c *LambdaLabsClient) listInstances(ctx context.Context) (*openapi.ListInstances200Response, error) {
+	result, err := collections.RetryWithDataAndAttemptCount(func() (*openapi.ListInstances200Response, error) {
+		res, resp, err := c.client.DefaultAPI.ListInstances(c.makeAuthContext(ctx)).Execute()
+		if resp != nil {
+			defer resp.Body.Close() //nolint:errcheck // ignore because using defer (for some reason HandleErrDefer)
+		}
+		if err != nil {
+			return &openapi.ListInstances200Response{}, handleAPIError(ctx, resp, err)
+		}
+		return res, nil
+	}, getBackoff())
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (c *LambdaLabsClient) restartInstance(ctx context.Context, request openapi.RestartInstanceRequest) (*openapi.RestartInstance200Response, error) {
+	result, err := collections.RetryWithDataAndAttemptCount(func() (*openapi.RestartInstance200Response, error) {
+		res, resp, err := c.client.DefaultAPI.RestartInstance(c.makeAuthContext(ctx)).RestartInstanceRequest(request).Execute()
+		if resp != nil {
+			defer resp.Body.Close() //nolint:errcheck // ignore because using defer (for some reason HandleErrDefer)
+		}
+		if err != nil {
+			return &openapi.RestartInstance200Response{}, handleAPIError(ctx, resp, err)
+		}
+		return res, nil
+	}, getBackoff())
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
