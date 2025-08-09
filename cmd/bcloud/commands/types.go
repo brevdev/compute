@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/brevdev/cloud/cmd/bcloud/providers"
+	"github.com/brevdev/cloud/cmd/bcloud/config"
 	v1 "github.com/brevdev/cloud/pkg/v1"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -35,13 +35,15 @@ func runTypes(_ *cobra.Command, args []string) error {
 		return fmt.Errorf("credential '%s' not found in config", refID)
 	}
 
-	cred, err := providers.CreateCredential(refID, credEntry)
-	if err != nil {
-		return fmt.Errorf("failed to create credential: %w", err)
+	cred := credEntry.Value
+	if cred == nil {
+		return fmt.Errorf("credential value is nil")
 	}
 
 	if typesLocation == "" {
-		typesLocation = providers.GetDefaultLocation(cred)
+		if provider, ok := cred.(config.DefaultLocationProvider); ok {
+			typesLocation = provider.GetDefaultLocation()
+		}
 	}
 	if typesLocation == "" {
 		return fmt.Errorf("location is required (use --location or set default_location in config)")

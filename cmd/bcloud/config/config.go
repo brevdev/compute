@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	lambdalabs "github.com/brevdev/cloud/internal/lambdalabs/v1"
+	nebius "github.com/brevdev/cloud/internal/nebius/v1"
 	v1 "github.com/brevdev/cloud/pkg/v1"
 	"gopkg.in/yaml.v3"
 )
@@ -14,6 +16,41 @@ var providerRegistry = map[string]func() v1.CloudCredential{}
 
 func RegisterProvider(id string, factory func() v1.CloudCredential) {
 	providerRegistry[id] = factory
+}
+
+type LambdaLabsCredentialWrapper struct {
+	*lambdalabs.LambdaLabsCredential
+	DefaultLocation string `json:"default_location" yaml:"default_location"`
+}
+
+func (w *LambdaLabsCredentialWrapper) GetDefaultLocation() string {
+	return w.DefaultLocation
+}
+
+type NebiusCredentialWrapper struct {
+	*nebius.NebiusCredential
+	DefaultLocation string `json:"default_location" yaml:"default_location"`
+}
+
+func (w *NebiusCredentialWrapper) GetDefaultLocation() string {
+	return w.DefaultLocation
+}
+
+type DefaultLocationProvider interface {
+	GetDefaultLocation() string
+}
+
+func init() {
+	RegisterProvider("lambdalabs", func() v1.CloudCredential {
+		return &LambdaLabsCredentialWrapper{
+			LambdaLabsCredential: &lambdalabs.LambdaLabsCredential{},
+		}
+	})
+	RegisterProvider("nebius", func() v1.CloudCredential {
+		return &NebiusCredentialWrapper{
+			NebiusCredential: &nebius.NebiusCredential{},
+		}
+	})
 }
 
 type CredentialEntry struct {
