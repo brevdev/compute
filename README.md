@@ -71,6 +71,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 - **[V1 Design Notes](pkg/v1/V1_DESIGN_NOTES.md)**: Design decisions, known quirks, and AWS-inspired patterns in the v1 API
 - **[Architecture Overview](docs/ARCHITECTURE.md)**: How the Cloud SDK fits into Brev's overall architecture
 - **[Security Requirements](docs/SECURITY.md)**: Security specifications and implementation requirements
+- **[How to Add a Provider](docs/how-to-add-a-provider.md)**: Step-by-step guide to implement a new cloud provider using the Lambda Labs example
 
 ---
 
