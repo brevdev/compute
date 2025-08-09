@@ -3,32 +3,25 @@ package providers
 import (
 	"fmt"
 
-	lambdalabs "github.com/brevdev/cloud/internal/lambdalabs/v1"
+	"github.com/brevdev/cloud/cmd/bcloud/config"
 	v1 "github.com/brevdev/cloud/pkg/v1"
 )
 
-func CreateCredential(yamlKey string, config map[string]interface{}) (v1.CloudCredential, error) {
-	provider, ok := config["provider"].(string)
-	if !ok {
-		return nil, fmt.Errorf("provider field is required")
+type DefaultLocationProvider interface {
+	GetDefaultLocation() string
+}
+
+func CreateCredential(_ string, credEntry config.CredentialEntry) (v1.CloudCredential, error) {
+	if credEntry.Value == nil {
+		return nil, fmt.Errorf("credential entry has no value")
 	}
 
-	var refID string
-	if explicitRefID, exists := config["ref_id"].(string); exists && explicitRefID != "" {
-		refID = explicitRefID
-	} else {
-		refID = yamlKey
-	}
+	return credEntry.Value, nil
+}
 
-	switch provider {
-	case "lambdalabs":
-		apiKey, ok := config["api_key"].(string)
-		if !ok {
-			return nil, fmt.Errorf("api_key required for lambdalabs provider")
-		}
-		return lambdalabs.NewLambdaLabsCredential(refID, apiKey), nil
-
-	default:
-		return nil, fmt.Errorf("unsupported provider: %s", provider)
+func GetDefaultLocation(cred v1.CloudCredential) string {
+	if provider, ok := cred.(DefaultLocationProvider); ok {
+		return provider.GetDefaultLocation()
 	}
+	return ""
 }

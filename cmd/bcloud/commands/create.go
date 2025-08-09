@@ -44,24 +44,18 @@ func runCreate(_ *cobra.Command, args []string) error {
 
 	refID := args[0]
 
-	credConfig, exists := cfg.Credentials[refID]
+	credEntry, exists := cfg.Credentials[refID]
 	if !exists {
 		return fmt.Errorf("credential '%s' not found in config", refID)
 	}
 
-	configMap := map[string]interface{}{
-		"provider": credConfig.Provider,
-		"api_key":  credConfig.APIKey,
-		"ref_id":   credConfig.RefID,
-	}
-
-	cred, err := providers.CreateCredential(refID, configMap)
+	cred, err := providers.CreateCredential(refID, credEntry)
 	if err != nil {
 		return fmt.Errorf("failed to create credential: %w", err)
 	}
 
 	if location == "" {
-		location = credConfig.DefaultLocation
+		location = providers.GetDefaultLocation(cred)
 	}
 	if location == "" {
 		return fmt.Errorf("location is required (use --location or set default_location in config)")

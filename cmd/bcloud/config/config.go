@@ -1,37 +1,114 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	v1 "github.com/brevdev/cloud/pkg/v1"
 	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
-	Credentials map[string]CredentialConfig `yaml:"credentials"`
-	Settings    Settings                    `yaml:"settings"`
+var providerRegistry = map[string]func() v1.CloudCredential{}
+
+func RegisterProvider(id string, factory func() v1.CloudCredential) {
+	providerRegistry[id] = factory
 }
 
-type CredentialConfig struct {
-	Provider          string `yaml:"provider"`
-	RefID             string `yaml:"ref_id,omitempty"`
-	APIKey            string `yaml:"api_key,omitempty"`
-	ServiceAccountKey string `yaml:"service_account_key,omitempty"`
-	ProjectID         string `yaml:"project_id,omitempty"`
-	DefaultLocation   string `yaml:"default_location,omitempty"`
+type CredentialEntry struct {
+	Provider string             `json:"provider" yaml:"provider"`
+	Value    v1.CloudCredential `json:"-" yaml:"-"`
+}
+
+func (c *CredentialEntry) decodeFromMap(m map[string]any, yamlKey string) error {
+	rawProv, ok := m["provider"]
+	if !ok {
+		return fmt.Errorf("missing 'provider'")
+	}
+	provider, ok := rawProv.(string)
+	if !ok || provider == "" {
+		return fmt.Errorf("invalid 'provider'")
+	}
+	factory, ok := providerRegistry[provider]
+	if !ok {
+		return fmt.Errorf("unknown provider: %s", provider)
+	}
+	cred := factory()
+
+	if _, hasRefID := m["ref_id"]; !hasRefID {
+		m["ref_id"] = yamlKey
+	}
+
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(b, cred); err != nil {
+		return err
+	}
+
+	c.Provider = provider
+	c.Value = cred
+	return nil
+}
+
+func (c CredentialEntry) encodeToMap() (map[string]any, error) {
+	if c.Value == nil {
+		return nil, fmt.Errorf("nil credential Value")
+	}
+	b, err := json.Marshal(c.Value) // serialize provider-specific fields
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]any{}
+	if err := json.Unmarshal(b, &out); err != nil {
+		return nil, err
+	}
+	out["provider"] = string(c.Value.GetCloudProviderID())
+	return out, nil
+}
+
+func (c *CredentialEntry) UnmarshalJSON(b []byte) error {
+	m := map[string]any{}
+	if err := json.Unmarshal(b, &m); err != nil {
+		return err
+	}
+	return c.decodeFromMap(m, "")
+}
+
+func (c CredentialEntry) MarshalJSON() ([]byte, error) {
+	m, err := c.encodeToMap()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(m)
+}
+
+func (c *CredentialEntry) UnmarshalYAML(n *yaml.Node) error {
+	m := map[string]any{}
+	if err := n.Decode(&m); err != nil {
+		return err
+	}
+	return c.decodeFromMap(m, "")
+}
+
+func (c CredentialEntry) MarshalYAML() (interface{}, error) {
+	m, err := c.encodeToMap()
+	if err != nil {
+		return nil, err
+	}
+	return m, nil // let yaml encode the map
+}
+
+type Config struct {
+	Credentials map[string]CredentialEntry `json:"credentials" yaml:"credentials"`
+	Settings    Settings                   `json:"settings" yaml:"settings"`
 }
 
 type Settings struct {
 	OutputFormat   string `yaml:"output_format"`
 	DefaultTimeout string `yaml:"default_timeout"`
-}
-
-func (c *CredentialConfig) GetRefID(yamlKey string) string {
-	if c.RefID != "" {
-		return c.RefID
-	}
-	return yamlKey
 }
 
 func LoadConfig() (*Config, error) {
@@ -55,9 +132,25 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
 	}
 
-	var config Config
-	if err := yaml.Unmarshal(data, &config); err != nil {
+	var rawConfig struct {
+		Credentials map[string]map[string]any `yaml:"credentials"`
+		Settings    Settings                  `yaml:"settings"`
+	}
+	if err := yaml.Unmarshal(data, &rawConfig); err != nil {
 		return nil, fmt.Errorf("failed to parse config file %s: %w", configPath, err)
+	}
+
+	config := Config{
+		Credentials: make(map[string]CredentialEntry),
+		Settings:    rawConfig.Settings,
+	}
+
+	for yamlKey, credData := range rawConfig.Credentials {
+		var credEntry CredentialEntry
+		if err := credEntry.decodeFromMap(credData, yamlKey); err != nil {
+			return nil, fmt.Errorf("failed to parse credential '%s': %w", yamlKey, err)
+		}
+		config.Credentials[yamlKey] = credEntry
 	}
 
 	if config.Settings.OutputFormat == "" {

@@ -25,24 +25,23 @@ func runGet(_ *cobra.Command, args []string) error {
 	refID := args[0]
 	instanceID := v1.CloudProviderInstanceID(args[1])
 
-	credConfig, exists := cfg.Credentials[refID]
+	credEntry, exists := cfg.Credentials[refID]
 	if !exists {
 		return fmt.Errorf("credential '%s' not found in config", refID)
 	}
 
-	configMap := map[string]interface{}{
-		"provider": credConfig.Provider,
-		"api_key":  credConfig.APIKey,
-		"ref_id":   credConfig.RefID,
-	}
-
-	cred, err := providers.CreateCredential(refID, configMap)
+	cred, err := providers.CreateCredential(refID, credEntry)
 	if err != nil {
 		return fmt.Errorf("failed to create credential: %w", err)
 	}
 
+	defaultLocation := providers.GetDefaultLocation(cred)
+	if defaultLocation == "" {
+		return fmt.Errorf("default location is required in config")
+	}
+
 	ctx := context.Background()
-	client, err := cred.MakeClient(ctx, credConfig.DefaultLocation)
+	client, err := cred.MakeClient(ctx, defaultLocation)
 	if err != nil {
 		return fmt.Errorf("failed to create client: %w", err)
 	}
