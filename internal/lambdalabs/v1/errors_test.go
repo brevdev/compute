@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -129,23 +128,13 @@ func TestHandleAPIError_ServerError(t *testing.T) {
 }
 
 func TestHandleAPIError_OpenAPIError(t *testing.T) {
-	body := `{"error": {"message": "openapi error"}}`
+	body := `{"error": {"message": "test error"}}`
 
 	openAPIErr := openapi.GenericOpenAPIError{}
 
-	v := reflect.ValueOf(&openAPIErr).Elem()
-	bodyField := v.FieldByName("body")
-	if bodyField.CanSet() {
-		bodyField.SetBytes([]byte(body))
-	}
-	errorField := v.FieldByName("error")
-	if errorField.CanSet() {
-		errorField.SetString("openapi error")
-	}
-
 	resp := &http.Response{
 		StatusCode: 400,
-		Body:       io.NopCloser(strings.NewReader("")),
+		Body:       io.NopCloser(strings.NewReader(body)),
 		Request:    &http.Request{URL: &url.URL{Path: "/test"}},
 		Status:     "400 Bad Request",
 	}
@@ -154,7 +143,9 @@ func TestHandleAPIError_OpenAPIError(t *testing.T) {
 
 	var permanentErr *backoff.PermanentError
 	require.True(t, errors.As(err, &permanentErr))
-	assert.Contains(t, permanentErr.Err.Error(), "openapi error")
+	assert.Contains(t, permanentErr.Err.Error(), "LambdaLabs API error")
+	assert.Contains(t, permanentErr.Err.Error(), "/test")
+	assert.Contains(t, permanentErr.Err.Error(), "400 Bad Request")
 }
 
 func TestHandleAPIError_EmptyBody(t *testing.T) {
