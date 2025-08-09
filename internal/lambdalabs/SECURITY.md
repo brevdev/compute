@@ -16,22 +16,30 @@ This document outlines how the Lambda Labs integration complies with Brev Cloud 
 
 ## 🔐 Network Security
 
-### Default Rules
+### Current Model
 
-- **Inbound:** All inbound traffic is **denied by default**. Lambda instances are provisioned without open ports unless explicitly defined. (Lambda Labs by default allows SSH/ICMP; Brev overrides this to achieve a true deny-all inbound posture.)
-- **Outbound:** All outbound traffic is **unrestricted by default**. Lambda Cloud imposes no egress restrictions, so instances can freely initiate outbound connections.
+Lambda Labs recently introduced support for per-instance and per-cluster firewalls, enabling more granular network security controls. **However, the Brev Cloud SDK integration does _not yet_ utilize these new per-instance/cluster firewall features.**
+
+**Currently, we rely on Lambda Labs' account-level global firewall rules to enforce network security.** This means:
+
+- **Inbound:** By default, all inbound traffic is restricted at the account level except for SSH (TCP/22), which is required for instance access and management. All other inbound ports and protocols are closed unless explicitly allowed at the account/global level.
+- **Outbound:** All outbound traffic is **unrestricted by default**. Lambda Cloud does not impose egress restrictions, so instances can freely initiate outbound connections.
+
+> **Note:** The configuration of these global firewall rules is performed _outside_ of the Brev Cloud SDK's cloud integration package. Setting up these account-level firewall rules to restrict all inbound traffic except SSH is a **prerequisite for securely adding a new Lambda Labs account** to Brev.
 
 ### Explicit Inbound Access
 
-- Brev allows inbound access only through explicitly defined `FirewallRule` resources.
-- Each `FirewallRule` maps to a Lambda Cloud firewall rule allowing a specific port and protocol from an authorized source.
-- No ports are open unless explicitly configured by Brev.
+- Brev restricts inbound access to SSH only (TCP/22) using Lambda Labs' global firewall rules.
+- No other inbound ports are open by default. If additional access is required, it must be configured at the account/global firewall level (not per-instance).
+- The new per-instance/cluster firewall features are not yet integrated with Brev's `FirewallRule` abstraction.
 
-### Implementation Mapping
+### Implementation Notes
 
-- **Inbound Deny:** Achieved by removing default allow rules (e.g., SSH) and not attaching any ingress rules unless defined in `FirewallRule`.
+- **Inbound Deny (except SSH):** Achieved by configuring Lambda Labs' global firewall rules to allow only SSH and deny all other inbound traffic.
 - **Outbound Allow:** No changes needed; outbound access is unrestricted by Lambda by default.
-- **FirewallRule Mapping:** Each Brev `FirewallRule` maps directly to a Lambda Labs firewall rule (e.g., TCP/22 from 203.0.113.0/24).
+- **FirewallRule Mapping:** At this time, Brev's `FirewallRule` resources are not mapped to Lambda Labs' new per-instance/cluster firewall APIs. All restrictions are enforced at the account/global level.
+
+> **Planned Improvement:** We plan to update the integration to leverage Lambda Labs' per-instance/cluster firewalls for finer-grained network control in a future release.
 
 ---
 
