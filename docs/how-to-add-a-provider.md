@@ -38,6 +38,42 @@ Patterns to follow:
 
 ---
 
+---
+## Compute Brokers & Marketplaces (Aggregators)
+
+This SDK supports providers that aggregate compute from multiple upstream sources (multi-cloud brokers, marketplaces, or exchanges). When implementing an aggregator, use these fields to differentiate where the compute comes from and to present consistent placement semantics:
+
+- Provider (CloudProviderID): Identify your aggregator (e.g., "mybroker"). If you expose underlying vendors, include that metadata on the returned resources (e.g., via tags/labels) or encode it in stable IDs that you control.
+- Location and SubLocation: Map upstream regions/zones into `Location` and `SubLocation` so users can choose placement consistently across sources. For example, use `Location="us-west"` and `SubLocation="vendorA/zone-2"` or `SubLocation="sv15/DC3"` for finer placement.
+- InstanceType IDs: If upstream vendors don’t provide stable, cross-market IDs, generate stable IDs using `MakeGenericInstanceTypeID` and include upstream hints in IDs or metadata. Ensure stability over time to avoid breaking consumers.
+- Capabilities: Only advertise features that your aggregator reliably supports across upstream vendors (e.g., Create/Terminate/Reboot). Omit capabilities (ModifyFirewall, Stop/Start, ResizeVolume, MachineImage, Tags) if they are not uniformly supported.
+
+Minimal pattern:
+
+- Credential.GetAPIType: Return `APITypeLocational` when placement is region-scoped; `APITypeGlobal` otherwise.
+- Client.MakeClient(ctx, location): Bind the client to the chosen `Location` for list/launch operations.
+- Security: Conform to the default-deny inbound model; document any upstream limitations under `internal/{provider}/SECURITY.md` and reflect them in capabilities.
+
+Conceptual example:
+
+```
+func (c *BrokerClient) CreateInstance(ctx context.Context, attrs v1.CreateInstanceAttrs) (*v1.Instance, error) {
+    // attrs.Location: "us-west"; attrs.SubLocation: "vendorA/zone-2"
+    // 1) Select upstream pool by Location/SubLocation and InstanceType availability
+    // 2) Launch via upstream vendor API
+    // 3) Return v1.Instance:
+    //    - CloudProviderID: "mybroker"
+    //    - Location/SubLocation set from attrs/placement
+    //    - Stable InstanceTypeID (use v1.MakeGenericInstanceTypeID if needed)
+    //    - Include upstream vendor metadata in tags/labels for observability
+    return inst, nil
+}
+```
+
+Design notes:
+- Keep your `Location`/`SubLocation` stable even if upstream identifiers change; translate upstream → broker-stable naming.
+- Prefer lowest common denominator in `Capabilities` when upstreams differ.
+- If firewall models are project- or network-scoped upstream, omit `CapabilityModifyFirewall` and document the nuance.
 ## Directory Layout
 
 Create a new provider folder:
