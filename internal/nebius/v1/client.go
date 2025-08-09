@@ -65,7 +65,7 @@ var _ v1.CloudClient = &NebiusClient{}
 
 func NewNebiusClient(ctx context.Context, refID, serviceAccountKey, projectID, location string) (*NebiusClient, error) {
 	sdk, err := gosdk.New(ctx, gosdk.WithCredentials(
-		gosdk.IAMToken(serviceAccountKey), // For now, treat as IAM token - will need proper service account handling later
+		gosdk.IAMToken(serviceAccountKey),
 	))
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Nebius SDK: %w", err)

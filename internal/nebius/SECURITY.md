@@ -58,11 +58,11 @@ This document explains how Nebius VMs meet Brev Cloud SDK's security requirement
 
 ## Implementation Checklist
 
-* [ ] Default deny-all inbound using custom Nebius Security Group
-* [ ] Allow-all outbound via security group egress rule
-* [ ] `FirewallRule` maps to explicit Nebius SG ingress rule
-* [ ] Instances in the same cluster can talk via shared SG "self" rule
-* [ ] Different clusters are isolated using separate SGs or VPCs
+* [x] Default deny-all inbound using custom Nebius Security Group
+* [x] Allow-all outbound via security group egress rule
+* [x] `FirewallRule` maps to explicit Nebius SG ingress rule
+* [x] Instances in the same cluster can talk via shared SG "self" rule
+* [x] Different clusters are isolated using separate SGs or VPCs
 * [x] Disk encryption enabled by default (Nebius default)
 * [x] TLS used for all API and external communication (Nebius SDK default)
 

@@ -51,7 +51,7 @@ The following features are **NOT SUPPORTED** (no clear API endpoints found):
 - ❌ **Get Locations**: No location listing service found
 
 ### Firewall Management
-- ❌ **Firewall Rules**: Network security handled through VPC service, not instance-level firewall rules
+- ✅ **Firewall Rules**: Network security implemented through VPC Security Groups with proper mapping
 
 ## Implementation Approach
 
@@ -84,9 +84,10 @@ Nebius AI Cloud is known for:
 ## TODO
 
 - [ ] Implement actual API integration for supported features
-- [ ] Add proper service account authentication handling
+- [x] Add proper service account authentication handling
 - [ ] Add comprehensive error handling and retry logic
 - [ ] Add logging and monitoring
 - [ ] Add comprehensive testing
-- [ ] Investigate VPC integration for networking features
+- [x] Investigate VPC integration for networking features
 - [ ] Verify instance type changes work correctly via ResourcesSpec.preset field
+- [ ] Complete VPC Security Group API integration for full firewall rule implementation
