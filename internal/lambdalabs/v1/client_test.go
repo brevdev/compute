@@ -18,7 +18,7 @@ func TestLambdaLabsClient_GetAPIType(t *testing.T) {
 
 func TestLambdaLabsClient_GetCloudProviderID(t *testing.T) {
 	client := &LambdaLabsClient{}
-	assert.Equal(t, v1.CloudProviderID("lambdalabs"), client.GetCloudProviderID())
+	assert.Equal(t, v1.CloudProviderID(CloudProviderID), client.GetCloudProviderID())
 }
 
 func TestLambdaLabsClient_MakeClient(t *testing.T) {
