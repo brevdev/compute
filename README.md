@@ -61,13 +61,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 - **NVIDIA Cloud Partners (NCPs)** looking to offer Brev-compatible GPU compute
 - **Infra teams** building cluster-aware systems or abstractions on raw compute
 - **Cloud providers** interested in contributing to a shared interface for accelerated compute
-- **Compute brokers & marketplaces (aggregators)** offering multi-cloud compute; use `Location`, `SubLocation`, and `CloudProviderID` to differentiate upstream sources behind a consistent interface
-
-## Aggregators (Brokers/Marketplaces/Multi-cloud)
-
-Aggregator providers can integrate with this SDK to expose heterogeneous upstream compute behind a single provider surface. Map upstream regions/zones into `Location` and `SubLocation`, declare the common-denominator `Capabilities`, and maintain stable instance type identifiers (use `MakeGenericInstanceTypeID` if needed). Use `CloudProviderID` to represent your aggregator while preserving upstream metadata via tags/labels where helpful.
-
----
+- **Compute brokers & marketplaces (aggregators)** offering multi-cloud compute
 
 ## Documentation
 
