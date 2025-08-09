@@ -9,6 +9,7 @@ on:
   pull_request:
     paths:
       - 'internal/lambdalabs/**'
+      - 'internal/validation/**'
       - 'pkg/v1/**'
     branches: [ main ]
 
