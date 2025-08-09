@@ -14,8 +14,8 @@ import (
 
 // LambdaLabsCredential implements the CloudCredential interface for Lambda Labs
 type LambdaLabsCredential struct {
-	RefID  string
-	APIKey string
+	RefID  string `json:"ref_id"`
+	APIKey string `json:"api_key"`
 }
 
 var _ v1.CloudCredential = &LambdaLabsCredential{}
