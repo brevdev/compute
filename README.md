@@ -53,6 +53,7 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 - **Operating System**: Currently supports Ubuntu 22 only
 - **Architecture**: Designed for GPU-accelerated compute workloads
 - **Access Method**: Requires SSH server and SSH key-based authentication
+- **System Requirements**: Requires systemd to be running and accessible
 
 ---
 
