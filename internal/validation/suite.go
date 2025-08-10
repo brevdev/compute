@@ -130,7 +130,6 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 				InstanceType: instance.InstanceType,
 				Location:     instance.Location,
 				PublicKey:    ssh.GetTestPublicKey(),
-				Name:         "test-connectivity",
 			}
 			err := v1.ValidateEastWestConnectivity(ctx, client, attrs, ssh.GetTestPrivateKey())
 			require.NoError(t, err, "ValidateEastWestConnectivity should pass")
