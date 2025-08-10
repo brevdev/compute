@@ -16,6 +16,7 @@ This document outlines the security requirements and best practices for implemen
 **Implementation Requirements:**
 
 - SSH server (OpenSSH or equivalent) must be installed and running on all instances
+- systemd must be running and accessible via systemctl command
 - SSH key pairs must be supported for authentication
 - Public keys must be injectable during instance provisioning
 - SSH access must be available through the configured firewall rules
@@ -136,4 +137,4 @@ For security issues, vulnerabilities, or questions:
 
 ---
 
-**Note**: This document is a living document and will be updated as security requirements evolve. All cloud integrations must comply with these requirements to ensure the security and integrity of the Brev Compute SDK ecosystem.  
+**Note**: This document is a living document and will be updated as security requirements evolve. All cloud integrations must comply with these requirements to ensure the security and integrity of the Brev Compute SDK ecosystem.    
