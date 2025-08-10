@@ -1,0 +1,58 @@
+name: Cleanup Orphaned Instances
+
+on:
+  workflow_dispatch:
+    # Manual trigger only - disabled by default
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (list instances without deleting)'
+        required: false
+        default: 'false'
+        type: boolean
+  # Uncomment the schedule below to enable automatic hourly cleanup
+  # schedule:
+  #   # Run every hour
+  #   - cron: '0 * * * *'
+
+jobs:
+  cleanup-lambdalabs:
+    name: Cleanup LambdaLabs Orphaned Instances
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23.0'
+        
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+          
+    - name: Install dependencies
+      run: make deps
+      
+    - name: Run cleanup for LambdaLabs
+      env:
+        LAMBDALABS_API_KEY: ${{ secrets.LAMBDALABS_API_KEY }}
+        DRY_RUN: ${{ github.event.inputs.dry_run }}
+      run: |
+        cd internal/lambdalabs
+        go run ../../cmd/cleanup/main.go -provider=lambdalabs -dry-run=$DRY_RUN
+        
+    - name: Upload cleanup results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: cleanup-results
+        path: |
+          cleanup-*.log
