@@ -14,8 +14,8 @@ import (
 
 // LambdaLabsCredential implements the CloudCredential interface for Lambda Labs
 type LambdaLabsCredential struct {
-	RefID  string
-	APIKey string
+	RefID  string `json:"ref_id" yaml:"ref_id"`
+	APIKey string `json:"api_key" yaml:"api_key"`
 }
 
 var _ v1.CloudCredential = &LambdaLabsCredential{}
@@ -38,7 +38,7 @@ func (c *LambdaLabsCredential) GetAPIType() v1.APIType {
 	return v1.APITypeGlobal
 }
 
-const CloudProviderID = "lambda-labs"
+const CloudProviderID = "lambdalabs"
 
 const DefaultRegion string = "us-west-1"
 
@@ -91,7 +91,7 @@ func (c *LambdaLabsClient) GetAPIType() v1.APIType {
 
 // GetCloudProviderID returns the cloud provider ID for Lambda Labs
 func (c *LambdaLabsClient) GetCloudProviderID() v1.CloudProviderID {
-	return "lambdalabs"
+	return CloudProviderID
 }
 
 // MakeClient creates a new client instance

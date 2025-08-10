@@ -12,12 +12,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var providerRegistry = map[string]func() v1.CloudCredential{}
+const (
+	ProviderLambdaLabs = "lambdalabs"
+	ProviderNebius     = "nebius"
+)
 
-var providerIDToRegistryKey = map[string]string{
-	"lambda-labs": "lambdalabs",
-	"nebius":      "nebius",
-}
+var providerRegistry = map[string]func() v1.CloudCredential{}
 
 func RegisterProvider(id string, factory func() v1.CloudCredential) {
 	providerRegistry[id] = factory
@@ -46,12 +46,12 @@ type DefaultLocationProvider interface {
 }
 
 func init() {
-	RegisterProvider("lambdalabs", func() v1.CloudCredential {
+	RegisterProvider(ProviderLambdaLabs, func() v1.CloudCredential {
 		return &LambdaLabsCredentialWrapper{
 			LambdaLabsCredential: &lambdalabs.LambdaLabsCredential{},
 		}
 	})
-	RegisterProvider("nebius", func() v1.CloudCredential {
+	RegisterProvider(ProviderNebius, func() v1.CloudCredential {
 		return &NebiusCredentialWrapper{
 			NebiusCredential: &nebius.NebiusCredential{},
 		}
@@ -72,18 +72,14 @@ func (c *CredentialEntry) decodeFromMap(m map[string]any, yamlKey string) error 
 	if !ok || provider == "" {
 		return fmt.Errorf("invalid 'provider'")
 	}
-	registryKey := provider
-	if mappedKey, exists := providerIDToRegistryKey[provider]; exists {
-		registryKey = mappedKey
-	}
-	factory, ok := providerRegistry[registryKey]
+	factory, ok := providerRegistry[provider]
 	if !ok {
 		return fmt.Errorf("unknown provider: %s", provider)
 	}
 	cred := factory()
 
-	if _, hasRefID := m["RefID"]; !hasRefID {
-		m["RefID"] = yamlKey
+	if _, hasRefID := m["ref_id"]; !hasRefID {
+		m["ref_id"] = yamlKey
 	}
 
 	b, err := json.Marshal(m)
@@ -94,7 +90,7 @@ func (c *CredentialEntry) decodeFromMap(m map[string]any, yamlKey string) error 
 		return err
 	}
 
-	c.Provider = registryKey
+	c.Provider = provider
 	c.Value = cred
 	return nil
 }

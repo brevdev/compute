@@ -61,12 +61,12 @@ func TestLoadConfig_Success(t *testing.T) {
 credentials:
   test-lambda:
     provider: "lambdalabs"
-    APIKey: "test-key"
+    api_key: "test-key"
     default_location: "us-west-1"
   test-lambda-with-ref:
     provider: "lambdalabs"
-    APIKey: "test-key-2"
-    RefID: "custom-ref-id"
+    api_key: "test-key-2"
+    ref_id: "custom-ref-id"
     default_location: "us-east-1"
 settings:
   output_format: "json"
@@ -95,8 +95,8 @@ settings:
 	if !exists {
 		t.Fatal("test-lambda credential not found")
 	}
-	if testLambda.Provider != "lambdalabs" {
-		t.Errorf("Expected provider 'lambdalabs', got '%s'", testLambda.Provider)
+	if testLambda.Provider != ProviderLambdaLabs {
+		t.Errorf("Expected provider '%s', got '%s'", ProviderLambdaLabs, testLambda.Provider)
 	}
 	if testLambda.Value.GetReferenceID() != "test-lambda" {
 		t.Errorf("Expected ref_id 'test-lambda', got '%s'", testLambda.Value.GetReferenceID())
@@ -132,7 +132,7 @@ func TestLoadConfig_WorkingDirectoryFallback(t *testing.T) {
 credentials:
   test-cred:
     provider: "lambdalabs"
-    APIKey: "test-key"
+    api_key: "test-key"
     default_location: "us-west-1"
 `
 
@@ -218,7 +218,7 @@ func TestLoadConfig_DefaultSettings(t *testing.T) {
 credentials:
   test-cred:
     provider: "lambdalabs"
-    APIKey: "test-key"
+    api_key: "test-key"
     default_location: "us-west-1"
 `
 
@@ -295,7 +295,7 @@ func TestCredentialEntry_DecodeFromMap_KeyAsRefID(t *testing.T) {
 	var entry CredentialEntry
 	m := map[string]any{
 		"provider":         "lambdalabs",
-		"APIKey":           "test-key",
+		"api_key":          "test-key",
 		"default_location": "us-west-1",
 	}
 
@@ -304,8 +304,8 @@ func TestCredentialEntry_DecodeFromMap_KeyAsRefID(t *testing.T) {
 		t.Fatalf("decodeFromMap failed: %v", err)
 	}
 
-	if entry.Provider != "lambdalabs" {
-		t.Errorf("Expected provider 'lambdalabs', got '%s'", entry.Provider)
+	if entry.Provider != ProviderLambdaLabs {
+		t.Errorf("Expected provider '%s', got '%s'", ProviderLambdaLabs, entry.Provider)
 	}
 	if entry.Value.GetReferenceID() != "my-lambda-key" {
 		t.Errorf("Expected ref_id 'my-lambda-key', got '%s'", entry.Value.GetReferenceID())
@@ -324,8 +324,8 @@ func TestCredentialEntry_DecodeFromMap_ExplicitRefID(t *testing.T) {
 	var entry CredentialEntry
 	m := map[string]any{
 		"provider":         "lambdalabs",
-		"APIKey":           "test-key",
-		"RefID":            "explicit-ref-id",
+		"api_key":          "test-key",
+		"ref_id":           "explicit-ref-id",
 		"default_location": "us-west-1",
 	}
 
@@ -341,7 +341,7 @@ func TestCredentialEntry_DecodeFromMap_ExplicitRefID(t *testing.T) {
 
 func TestCredentialEntry_JSONMarshalUnmarshal(t *testing.T) {
 	original := CredentialEntry{
-		Provider: "lambdalabs",
+		Provider: ProviderLambdaLabs,
 		Value: &LambdaLabsCredentialWrapper{
 			LambdaLabsCredential: &lambdalabs.LambdaLabsCredential{
 				RefID:  "test-ref",
@@ -372,7 +372,7 @@ func TestCredentialEntry_JSONMarshalUnmarshal(t *testing.T) {
 
 func TestCredentialEntry_YAMLMarshalUnmarshal(t *testing.T) {
 	original := CredentialEntry{
-		Provider: "lambdalabs",
+		Provider: ProviderLambdaLabs,
 		Value: &LambdaLabsCredentialWrapper{
 			LambdaLabsCredential: &lambdalabs.LambdaLabsCredential{
 				RefID:  "test-ref",
@@ -403,7 +403,7 @@ func TestCredentialEntry_YAMLMarshalUnmarshal(t *testing.T) {
 
 func TestCredentialEntry_EncodeToMap_NilValue(t *testing.T) {
 	entry := CredentialEntry{
-		Provider: "lambdalabs",
+		Provider: ProviderLambdaLabs,
 		Value:    nil,
 	}
 
@@ -442,8 +442,8 @@ func TestProviderRegistry_LambdaLabs(t *testing.T) {
 		t.Fatal("Factory returned nil credential")
 	}
 
-	if cred.GetCloudProviderID() != "lambda-labs" {
-		t.Errorf("Expected provider ID 'lambda-labs', got '%s'", cred.GetCloudProviderID())
+	if cred.GetCloudProviderID() != ProviderLambdaLabs {
+		t.Errorf("Expected provider ID '%s', got '%s'", ProviderLambdaLabs, cred.GetCloudProviderID())
 	}
 
 	wrapper, ok := cred.(*LambdaLabsCredentialWrapper)
