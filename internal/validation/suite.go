@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	v1 "github.com/brevdev/cloud/pkg/v1"
 	"github.com/stretchr/testify/require"
 )
+
+const UniversalCloudCredRefID = "brev-validation-test"
 
 type ProviderConfig struct {
 	Location   string
@@ -125,4 +128,47 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 			require.NoError(t, err, "ValidateTerminateInstance should pass")
 		})
 	})
+}
+
+func CleanupOrphanedInstances(ctx context.Context, client v1.CloudCreateTerminateInstance) error {
+	instances, err := client.ListInstances(ctx, v1.ListInstancesArgs{})
+	if err != nil {
+		return fmt.Errorf("failed to list instances: %w", err)
+	}
+
+	cutoffTime := time.Now().Add(-1 * time.Hour)
+	var orphanedInstances []v1.Instance
+
+	for _, instance := range instances {
+		if instance.CloudCredRefID == UniversalCloudCredRefID {
+			if instance.CreatedAt.Before(cutoffTime) {
+				orphanedInstances = append(orphanedInstances, instance)
+			}
+		}
+	}
+
+	if len(orphanedInstances) == 0 {
+		fmt.Printf("No orphaned instances found with CloudCredRefID: %s\n", UniversalCloudCredRefID)
+		return nil
+	}
+
+	fmt.Printf("Found %d orphaned instances to clean up\n", len(orphanedInstances))
+
+	var cleanupErrors []error
+	for _, instance := range orphanedInstances {
+		fmt.Printf("Terminating orphaned instance: %s (created: %s)\n",
+			instance.CloudID, instance.CreatedAt.Format(time.RFC3339))
+
+		err := client.TerminateInstance(ctx, instance.CloudID)
+		if err != nil {
+			cleanupErrors = append(cleanupErrors, fmt.Errorf("failed to terminate instance %s: %w", instance.CloudID, err))
+		}
+	}
+
+	if len(cleanupErrors) > 0 {
+		return fmt.Errorf("cleanup completed with %d errors: %v", len(cleanupErrors), cleanupErrors)
+	}
+
+	fmt.Printf("Successfully cleaned up %d orphaned instances\n", len(orphanedInstances))
+	return nil
 }

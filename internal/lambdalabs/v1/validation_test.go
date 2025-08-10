@@ -13,7 +13,7 @@ func TestValidationFunctions(t *testing.T) {
 	apiKey := getAPIKey()
 
 	config := validation.ProviderConfig{
-		Credential: NewLambdaLabsCredential("validation-test", apiKey),
+		Credential: NewLambdaLabsCredential(validation.UniversalCloudCredRefID, apiKey),
 		StableIDs:  []v1.InstanceTypeID{"us-west-1-noSub-gpu_8x_a100_80gb_sxm4", "us-east-1-noSub-gpu_8x_a100_80gb_sxm4"},
 	}
 
@@ -25,7 +25,7 @@ func TestInstanceLifecycleValidation(t *testing.T) {
 	apiKey := getAPIKey()
 
 	config := validation.ProviderConfig{
-		Credential: NewLambdaLabsCredential("validation-test", apiKey),
+		Credential: NewLambdaLabsCredential(validation.UniversalCloudCredRefID, apiKey),
 	}
 
 	validation.RunInstanceLifecycleValidation(t, config)
