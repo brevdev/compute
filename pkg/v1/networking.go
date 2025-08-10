@@ -102,7 +102,7 @@ func ValidateEastWestConnectivity(ctx context.Context, client CloudCreateTermina
 
 	defer cleanupInstances(ctx, client, instance1, instance2)
 
-	err = waitForInstancesReady(ctx, client, instance1, instance2, privateKey)
+	instance1, instance2, err = waitForInstancesReady(ctx, client, instance1, instance2, privateKey)
 	if err != nil {
 		return err
 	}
@@ -153,16 +153,26 @@ func cleanupInstances(ctx context.Context, client CloudCreateTerminateInstance, 
 	}
 }
 
-func waitForInstancesReady(ctx context.Context, client CloudCreateTerminateInstance, instance1, instance2 *Instance, privateKey string) error {
+func waitForInstancesReady(ctx context.Context, client CloudCreateTerminateInstance, instance1, instance2 *Instance, privateKey string) (*Instance, *Instance, error) {
 	var err error
 	instance1, err = WaitForInstanceLifecycleStatus(ctx, client, instance1, LifecycleStatusRunning, PendingToRunningTimeout)
 	if err != nil {
-		return fmt.Errorf("first instance failed to reach running state: %w", err)
+		return nil, nil, fmt.Errorf("first instance failed to reach running state: %w", err)
 	}
 
 	instance2, err = WaitForInstanceLifecycleStatus(ctx, client, instance2, LifecycleStatusRunning, PendingToRunningTimeout)
 	if err != nil {
-		return fmt.Errorf("second instance failed to reach running state: %w", err)
+		return nil, nil, fmt.Errorf("second instance failed to reach running state: %w", err)
+	}
+
+	instance1, err = client.GetInstance(ctx, instance1.CloudID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to refresh first instance: %w", err)
+	}
+
+	instance2, err = client.GetInstance(ctx, instance2.CloudID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to refresh second instance: %w", err)
 	}
 
 	err = ssh.WaitForSSH(ctx, ssh.ConnectionConfig{
@@ -173,7 +183,7 @@ func waitForInstancesReady(ctx context.Context, client CloudCreateTerminateInsta
 		Timeout: RunningSSHTimeout,
 	})
 	if err != nil {
-		return fmt.Errorf("SSH not available on first instance: %w", err)
+		return nil, nil, fmt.Errorf("SSH not available on first instance: %w", err)
 	}
 
 	err = ssh.WaitForSSH(ctx, ssh.ConnectionConfig{
@@ -184,10 +194,10 @@ func waitForInstancesReady(ctx context.Context, client CloudCreateTerminateInsta
 		Timeout: RunningSSHTimeout,
 	})
 	if err != nil {
-		return fmt.Errorf("SSH not available on second instance: %w", err)
+		return nil, nil, fmt.Errorf("SSH not available on second instance: %w", err)
 	}
 
-	return nil
+	return instance1, instance2, nil
 }
 
 func testConnectivity(ctx context.Context, instance1, instance2 *Instance, privateKey string) error {
