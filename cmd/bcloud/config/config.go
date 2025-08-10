@@ -14,6 +14,11 @@ import (
 
 var providerRegistry = map[string]func() v1.CloudCredential{}
 
+var providerIDToRegistryKey = map[string]string{
+	"lambda-labs": "lambdalabs",
+	"nebius":      "nebius",
+}
+
 func RegisterProvider(id string, factory func() v1.CloudCredential) {
 	providerRegistry[id] = factory
 }
@@ -67,14 +72,18 @@ func (c *CredentialEntry) decodeFromMap(m map[string]any, yamlKey string) error 
 	if !ok || provider == "" {
 		return fmt.Errorf("invalid 'provider'")
 	}
-	factory, ok := providerRegistry[provider]
+	registryKey := provider
+	if mappedKey, exists := providerIDToRegistryKey[provider]; exists {
+		registryKey = mappedKey
+	}
+	factory, ok := providerRegistry[registryKey]
 	if !ok {
 		return fmt.Errorf("unknown provider: %s", provider)
 	}
 	cred := factory()
 
-	if _, hasRefID := m["ref_id"]; !hasRefID {
-		m["ref_id"] = yamlKey
+	if _, hasRefID := m["RefID"]; !hasRefID {
+		m["RefID"] = yamlKey
 	}
 
 	b, err := json.Marshal(m)
@@ -85,7 +94,7 @@ func (c *CredentialEntry) decodeFromMap(m map[string]any, yamlKey string) error 
 		return err
 	}
 
-	c.Provider = provider
+	c.Provider = registryKey
 	c.Value = cred
 	return nil
 }
