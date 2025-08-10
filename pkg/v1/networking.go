@@ -113,7 +113,11 @@ func ValidateEastWestConnectivity(ctx context.Context, client CloudCreateTermina
 func createTestInstances(ctx context.Context, client CloudCreateTerminateInstance, attrs CreateInstanceAttrs) (*Instance, *Instance, error) {
 	attrs1 := attrs
 	attrs1.RefID = uuid.New().String()
-	name1, err := makeDebuggableName(fmt.Sprintf("%s-east", attrs.Name))
+	baseName := attrs.Name
+	if baseName == "" {
+		baseName = "test-connectivity"
+	}
+	name1, err := makeDebuggableName(fmt.Sprintf("%s-east", baseName))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate debuggable name for first instance: %w", err)
 	}
@@ -126,7 +130,11 @@ func createTestInstances(ctx context.Context, client CloudCreateTerminateInstanc
 
 	attrs2 := attrs
 	attrs2.RefID = uuid.New().String()
-	name2, err := makeDebuggableName(fmt.Sprintf("%s-west", attrs.Name))
+	baseName2 := attrs.Name
+	if baseName2 == "" {
+		baseName2 = "test-connectivity"
+	}
+	name2, err := makeDebuggableName(fmt.Sprintf("%s-west", baseName2))
 	if err != nil {
 		return instance1, nil, fmt.Errorf("failed to generate debuggable name for second instance: %w", err)
 	}
