@@ -113,12 +113,28 @@ func RunInstanceLifecycleValidation(t *testing.T, config ProviderConfig) {
 			require.NoError(t, err, "ValidateInstanceImage should pass")
 		})
 
+		t.Run("ValidateInboundPortRestriction", func(t *testing.T) {
+			err := v1.ValidateInboundPortRestriction(ctx, client, instance, ssh.GetTestPrivateKey())
+			require.NoError(t, err, "ValidateInboundPortRestriction should pass")
+		})
+
 		if capabilities.IsCapable(v1.CapabilityStopStartInstance) && instance.Stoppable {
 			t.Run("ValidateStopStartInstance", func(t *testing.T) {
 				err := v1.ValidateStopStartInstance(ctx, client, instance)
 				require.NoError(t, err, "ValidateStopStartInstance should pass")
 			})
 		}
+
+		t.Run("ValidateEastWestConnectivity", func(t *testing.T) {
+			attrs := v1.CreateInstanceAttrs{
+				InstanceType: instance.InstanceType,
+				Location:     instance.Location,
+				PublicKey:    ssh.GetTestPublicKey(),
+				Name:         "test-connectivity",
+			}
+			err := v1.ValidateEastWestConnectivity(ctx, client, attrs, ssh.GetTestPrivateKey())
+			require.NoError(t, err, "ValidateEastWestConnectivity should pass")
+		})
 
 		t.Run("ValidateTerminateInstance", func(t *testing.T) {
 			err := v1.ValidateTerminateInstance(ctx, client, instance)
