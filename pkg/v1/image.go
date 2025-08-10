@@ -140,13 +140,15 @@ func validateHomeDirectory(ctx context.Context, sshClient *ssh.Client, sshUser s
 
 func validateSystemd(ctx context.Context, sshClient *ssh.Client) (string, error) {
 	stdout, stderr, err := sshClient.RunCommand(ctx, "systemctl is-system-running")
+
+	systemdStatus := strings.TrimSpace(stdout)
+	if systemdStatus == "running" || systemdStatus == "degraded" {
+		return systemdStatus, nil
+	}
+
 	if err != nil {
 		return "", fmt.Errorf("failed to check systemd status: %w, stdout: %s, stderr: %s", err, stdout, stderr)
 	}
 
-	systemdStatus := strings.TrimSpace(stdout)
-	if systemdStatus != "running" && systemdStatus != "degraded" {
-		return "", fmt.Errorf("expected systemd to be running or degraded, got: %s", systemdStatus)
-	}
-	return systemdStatus, nil
+	return "", fmt.Errorf("expected systemd to be running or degraded, got: %s", systemdStatus)
 }
