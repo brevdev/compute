@@ -254,7 +254,12 @@ These are hardware-specific features that vary by instance configuration, expres
 - `Preemptible`: Whether this instance type supports spot/preemptible pricing
 
 ### 3. Instance Capabilities
-These are runtime state-dependent features for individual running instances, similar to Instance Type capabilities but applied to a running instance rather than the type template. For example, a running instance might support certain operations that a stopped instance cannot, or vice versa. These are typically checked dynamically based on the instance's current `LifecycleStatus`.
+These are capability boolean fields replicated on individual `Instance` objects, similar to Instance Type capabilities but applied to the running instance rather than the type template. While these fields could theoretically be derived from the associated `InstanceType`, they are duplicated on the instance for performance and convenience reasons. Examples include:
+- `Stoppable`: Whether this specific instance can be stopped/started
+- `Rebootable`: Whether this specific instance can be rebooted
+- `IsContainer`: Whether this instance runs in container mode
+
+These fields must be kept accurate and in sync with the corresponding InstanceType capabilities, even though they appear redundant. They can also reflect runtime state-dependent variations - for example, a running instance might support certain operations that a stopped instance cannot, based on the current `LifecycleStatus`.
 
 Reference:
 - Lambda capabilities: ../internal/lambdalabs/v1/capabilities.go
