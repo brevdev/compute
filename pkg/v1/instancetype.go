@@ -36,23 +36,23 @@ type InstanceType struct {
 	MaximumNetworkInterfaces int32
 	NetworkPerformance       string
 
-	Quota     InstanceTypeQuota
-	BasePrice *currency.Amount
+	IsAvailable bool
+	Quota       InstanceTypeQuota
+	BasePrice   *currency.Amount
 
 	EstimatedDeployTime *time.Duration
 
 	// capabilities
-	IsContainer                     bool
-	CanModifyFirewallRules          bool
-	UserPrivilegeEscalationDisabled bool
-	NotPrivileged                   bool
-	Stoppable                       bool
-	Rebootable                      bool
-	VariablePrice                   bool
-	Preemptible                     bool
-	IsAvailable                     bool
-	ElasticRootVolume               bool
-	SubLocationTypeChangeable       bool
+	CanModifyFirewallRules          bool // can we modify the firewall rules?
+	IsContainer                     bool // is the instance a container?
+	UserPrivilegeEscalationDisabled bool // can the user escalate privileges? (processes can not be more privileged than initial process)
+	NotPrivileged                   bool // is the instance not privileged? (i.e. no sudo)
+	Stoppable                       bool // can the instance be stopped?
+	Rebootable                      bool // can the instance be rebooted?
+	VariablePrice                   bool // will the price change over time?
+	Preemptible                     bool // can the instance be preempted?
+	ElasticRootVolume               bool // can we change the root volume size? (i.e. can we resize the root volume?)
+	SubLocationTypeChangeable       bool // can we change the instance type to a different type in the same sublocation?
 }
 
 func MakeGenericInstanceTypeID(instanceType InstanceType) InstanceTypeID {

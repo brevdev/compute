@@ -202,9 +202,10 @@ type Instance struct {
 	// From private node to bastion
 	// i.e. SSH port 2222 is mapped to 2022 on the Bastion node
 	InternalPortMappings []PortMapping
-	VPCID                string
-	SubnetID             string
-	FirewallRules        FirewallRules
+
+	VPCID         string
+	SubnetID      string
+	FirewallRules FirewallRules
 
 	ImageID         string
 	DiskSize        units.Base2Bytes
