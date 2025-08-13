@@ -15,37 +15,44 @@ import (
 type InstanceTypeID string
 
 type InstanceType struct {
-	ID                              InstanceTypeID // this id should be unique across all regions and stable
-	Location                        string
-	AvailableAzs                    []string
-	SubLocation                     string
-	Type                            string
-	SupportedGPUs                   []GPU
-	SupportedStorage                []Storage
-	ElasticRootVolume               bool
-	SupportedUsageClasses           []string
-	Memory                          units.Base2Bytes
-	MaximumNetworkInterfaces        int32
-	NetworkPerformance              string
-	SupportedNumCores               []int32
-	DefaultCores                    int32
-	VCPU                            int32
-	SupportedArchitectures          []string
-	ClockSpeedInGhz                 float64
-	Quota                           InstanceTypeQuota
+	ID       InstanceTypeID // this id should be unique across all regions and stable
+	Provider string
+	Type     string
+
+	Location    string
+	SubLocation string
+
+	SupportedGPUs          []GPU
+	SupportedStorage       []Storage
+	SupportedUsageClasses  []string
+	SupportedArchitectures []string
+	SupportedNumCores      []int32
+
+	VCPU            int32
+	Memory          units.Base2Bytes
+	DefaultCores    int32
+	ClockSpeedInGhz float64
+
+	MaximumNetworkInterfaces int32
+	NetworkPerformance       string
+
+	Quota     InstanceTypeQuota
+	BasePrice *currency.Amount
+
+	EstimatedDeployTime *time.Duration
+
+	// capabilities
+	IsContainer                     bool
+	CanModifyFirewallRules          bool
+	UserPrivilegeEscalationDisabled bool
+	NotPrivileged                   bool
 	Stoppable                       bool
 	Rebootable                      bool
 	VariablePrice                   bool
 	Preemptible                     bool
 	IsAvailable                     bool
-	BasePrice                       *currency.Amount
+	ElasticRootVolume               bool
 	SubLocationTypeChangeable       bool
-	IsContainer                     bool
-	UserPrivilegeEscalationDisabled bool
-	NotPrivileged                   bool
-	EstimatedDeployTime             *time.Duration
-	Provider                        string
-	CanModifyFirewallRules          bool
 }
 
 func MakeGenericInstanceTypeID(instanceType InstanceType) InstanceTypeID {
@@ -53,9 +60,6 @@ func MakeGenericInstanceTypeID(instanceType InstanceType) InstanceTypeID {
 		return instanceType.ID
 	}
 	subLoc := noSubLocation
-	if len(instanceType.AvailableAzs) > 0 {
-		subLoc = instanceType.AvailableAzs[0]
-	}
 	return InstanceTypeID(fmt.Sprintf("%s-%s-%s", instanceType.Location, subLoc, instanceType.Type))
 }
 
@@ -175,7 +179,6 @@ func ValidateGetInstanceTypes(ctx context.Context, client CloudInstanceType) err
 	expectedType := firstType
 	expectedType.ID = ""
 	expectedType.SubLocation = ""
-	expectedType.AvailableAzs = nil
 
 	// Find the matching type in filteredTypes by ID (since order is not guaranteed)
 	var actualType InstanceType
@@ -184,7 +187,6 @@ func ValidateGetInstanceTypes(ctx context.Context, client CloudInstanceType) err
 		tmp := t
 		tmp.ID = ""
 		tmp.SubLocation = ""
-		tmp.AvailableAzs = nil
 		if reflect.DeepEqual(expectedType, tmp) {
 			actualType = tmp
 			found = true
@@ -196,7 +198,6 @@ func ValidateGetInstanceTypes(ctx context.Context, client CloudInstanceType) err
 		actualType = filteredTypes[0]
 		actualType.ID = ""
 		actualType.SubLocation = ""
-		actualType.AvailableAzs = nil
 		diff := cmp.Diff(expectedType, actualType)
 		fmt.Printf("Filtered instance type does not match expected type. Diff:\n%s\n", diff)
 		return fmt.Errorf("filtered instance type does not match expected type: expected %+v, got %+v", expectedType, actualType)
