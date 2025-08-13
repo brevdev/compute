@@ -239,12 +239,39 @@ Implement instance types in internal/{provider}/v1/instancetype.go:
 
 ## Capabilities: Be Precise
 
-Capability flags live in ../pkg/v1/capabilities.go. Only include capabilities your API actually supports. For example, Lambda Labs supports:
-- Create/terminate/reboot instance
+The SDK uses a three-level capability system to accurately represent what operations are supported:
+
+### 1. Provider-Level Capabilities
+These are high-level features that your cloud provider's API supports, declared in your `GetCapabilities()` method. Capability flags live in ../pkg/v1/capabilities.go. Only include capabilities your API actually supports. For example, Lambda Labs supports:
+- Create/terminate/reboot instance (`CapabilityCreateInstance`, `CapabilityTerminateInstance`, `CapabilityRebootInstance`)
 - Does not (currently) support stop/start, resize volume, machine image, tags
+
+### 2. Instance Type Capabilities  
+These are hardware-specific features that vary by instance configuration, expressed as boolean fields on the `InstanceType` struct:
+- `Stoppable`: Whether instances of this type can be stopped/started
+- `Rebootable`: Whether instances of this type can be rebooted
+- `CanModifyFirewallRules`: Whether firewall rules can be modified for this instance type
+- `Preemptible`: Whether this instance type supports spot/preemptible pricing
+
+### 3. Instance Capabilities
+These are runtime state-dependent features for individual running instances. For example, a running instance might support certain operations that a stopped instance cannot, or vice versa. These are typically checked dynamically based on the instance's current `LifecycleStatus`.
+
+### Instance Type Mapping Complexity
+
+Mapping provider-specific instance types to the v1.InstanceType format is one of the trickier aspects of provider integration. You'll need to:
+
+- Parse provider API responses (often with inconsistent formats)
+- Extract GPU specifications from description strings or structured data
+- Convert pricing information to standardized currency amounts  
+- Map provider-specific storage and networking details to v1 fields
+- Generate stable IDs using `MakeGenericInstanceTypeID` if the provider doesn't offer them
+- Handle availability and regional variations consistently
+
+See `convertLambdaLabsInstanceTypeToV1InstanceType()` in ../internal/lambdalabs/v1/instancetype.go for a complete example of this complex mapping process.
 
 Reference:
 - Lambda capabilities: ../internal/lambdalabs/v1/capabilities.go
+- Instance type mapping example: ../internal/lambdalabs/v1/instancetype.go
 
 ---
 
