@@ -239,9 +239,26 @@ Implement instance types in internal/{provider}/v1/instancetype.go:
 
 ## Capabilities: Be Precise
 
-Capability flags live in ../pkg/v1/capabilities.go. Only include capabilities your API actually supports. For example, Lambda Labs supports:
-- Create/terminate/reboot instance
+The SDK uses a three-level capability system to accurately represent what operations are supported:
+
+### 1. Provider-Level Capabilities
+These are high-level features that your cloud provider's API supports, declared in your `GetCapabilities()` method. Capability flags live in ../pkg/v1/capabilities.go. Only include capabilities your API actually supports. For example, Lambda Labs supports:
+- Create/terminate/reboot instance (`CapabilityCreateInstance`, `CapabilityTerminateInstance`, `CapabilityRebootInstance`)
 - Does not (currently) support stop/start, resize volume, machine image, tags
+
+### 2. Instance Type Capabilities  
+These are hardware-specific features that vary by instance configuration, expressed as boolean fields on the `InstanceType` struct:
+- `Stoppable`: Whether instances of this type can be stopped/started
+- `Rebootable`: Whether instances of this type can be rebooted
+- `CanModifyFirewallRules`: Whether firewall rules can be modified for this instance type
+- `Preemptible`: Whether this instance type supports spot/preemptible pricing
+
+### 3. Instance Capabilities
+These are capability boolean fields replicated on individual `Instance` objects, similar to Instance Type capabilities but applied to the running instance rather than the type template. While these fields could theoretically be derived from the associated `InstanceType`, they are duplicated on the instance for performance and convenience reasons. Examples include:
+- `Stoppable`: Whether this specific instance can be stopped/started
+- `Rebootable`: Whether this specific instance can be rebooted
+
+These fields must be kept accurate and in sync with the corresponding InstanceType capabilities, even though they appear redundant. They can also reflect runtime state-dependent variations - for example, a running instance might support certain operations that a stopped instance cannot, based on the current `LifecycleStatus`.
 
 Reference:
 - Lambda capabilities: ../internal/lambdalabs/v1/capabilities.go
