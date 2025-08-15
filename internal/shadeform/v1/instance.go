@@ -31,6 +31,8 @@ func (c *ShadeformClient) CreateInstance(ctx context.Context, attrs v1.CreateIns
 		Region:            region,
 		ShadeInstanceType: shadeInstanceType,
 		Name:              attrs.Name,
+		ShadeCloud:        true,
+		Tags:              []string{attrs.RefID},
 	}
 
 	resp, httpResp, err := c.client.DefaultAPI.InstancesCreate(authCtx).CreateRequest(req).Execute()
@@ -118,6 +120,7 @@ func (c *ShadeformClient) MergeInstanceTypeForUpdate(currIt v1.InstanceType, _ v
 	return currIt
 }
 
+// convertInstanceInfoResponseToV1Instance - converts Instance Info to v1 instance
 func (c *ShadeformClient) convertInstanceInfoResponseToV1Instance(instanceInfo openapi.InstanceInfoResponse) *v1.Instance {
 	var lifecycleStatus v1.LifecycleStatus
 	switch instanceInfo.Status {
@@ -137,6 +140,11 @@ func (c *ShadeformClient) convertInstanceInfoResponseToV1Instance(instanceInfo o
 
 	instanceType := c.getInstanceType(string(instanceInfo.Cloud), instanceInfo.ShadeInstanceType)
 
+	refID := ""
+	if instanceInfo.Tags != nil && len(instanceInfo.Tags) > 0 {
+		refID = instanceInfo.Tags[0]
+	}
+
 	instance := &v1.Instance{
 		Name:         instanceInfo.Name,
 		CreatedAt:    instanceInfo.CreatedAt,
@@ -155,11 +163,14 @@ func (c *ShadeformClient) convertInstanceInfoResponseToV1Instance(instanceInfo o
 		Location:   instanceInfo.Region,
 		Stoppable:  false,
 		Rebootable: true,
+		RefID:      refID,
 	}
 
 	return instance
 }
 
+// convertInstanceInfoResponseToV1Instance - converts /instances response to v1 instance; the api struct is slightly
+// different from instance info so keeping it as a separate function for now
 func (c *ShadeformClient) convertShadeformInstanceToV1Instance(shadeformInstance openapi.Instance) *v1.Instance {
 
 	var lifecycleStatus v1.LifecycleStatus
@@ -180,6 +191,11 @@ func (c *ShadeformClient) convertShadeformInstanceToV1Instance(shadeformInstance
 
 	instanceType := c.getInstanceType(string(shadeformInstance.Cloud), shadeformInstance.ShadeInstanceType)
 
+	refID := ""
+	if shadeformInstance.Tags != nil && len(shadeformInstance.Tags) > 0 {
+		refID = shadeformInstance.Tags[0]
+	}
+
 	instance := &v1.Instance{
 		Name:         shadeformInstance.Name,
 		CreatedAt:    shadeformInstance.CreatedAt,
@@ -198,6 +214,7 @@ func (c *ShadeformClient) convertShadeformInstanceToV1Instance(shadeformInstance
 		Location:   shadeformInstance.Region,
 		Stoppable:  false,
 		Rebootable: true,
+		RefID:      refID,
 	}
 
 	return instance

@@ -530,8 +530,8 @@ components:
           hourly_price: 210
           deployment_type: vm
           boot_time:
-            min_boot_in_sec: 180
             max_boot_in_sec: 300
+            min_boot_in_sec: 180
           storage_in_gb: 256
         - nvlink: true
           configuration:
@@ -564,8 +564,8 @@ components:
           hourly_price: 210
           deployment_type: vm
           boot_time:
-            min_boot_in_sec: 180
             max_boot_in_sec: 300
+            min_boot_in_sec: 180
           storage_in_gb: 256
       properties:
         instance_types:
@@ -609,8 +609,8 @@ components:
         hourly_price: 210
         deployment_type: vm
         boot_time:
-          min_boot_in_sec: 180
           max_boot_in_sec: 300
+          min_boot_in_sec: 180
         storage_in_gb: 256
       properties:
         cloud:
@@ -649,10 +649,7 @@ components:
             $ref: '#/components/schemas/Availability'
           type: array
         boot_time:
-          example:
-            min_boot_in_sec: 180
-            max_boot_in_sec: 300
-          type: object
+          $ref: '#/components/schemas/BootTime'
         memory_in_gb:
           description: The amount of memory for the instance in gigabytes. Note that
             this is not VRAM which is determined by GPU type and the number of GPUs.
@@ -740,9 +737,15 @@ components:
           deleted_at: 2016-08-29T09:12:33.001Z
           shade_cloud: true
           shade_instance_type: A6000
+          tags:
+          - tag1
+          - tag1
           cloud: hyperstack
           hourly_price: 210
           cost_estimate: "103.4"
+          boot_time:
+            max_boot_in_sec: 300
+            min_boot_in_sec: 180
           port_mappings:
           - external_port: 80
             internal_port: 8000
@@ -751,6 +754,8 @@ components:
           name: cool-gpu-server
           id: d290f1ee-6c54-4b01-90e6-d701748f0851
           region: canada-1
+          active_at: 2016-08-29T09:12:33.001Z
+          status_details: downloading
           ssh_user: shadeform
           status: active
         - ssh_port: 22
@@ -797,9 +802,15 @@ components:
           deleted_at: 2016-08-29T09:12:33.001Z
           shade_cloud: true
           shade_instance_type: A6000
+          tags:
+          - tag1
+          - tag1
           cloud: hyperstack
           hourly_price: 210
           cost_estimate: "103.4"
+          boot_time:
+            max_boot_in_sec: 300
+            min_boot_in_sec: 180
           port_mappings:
           - external_port: 80
             internal_port: 8000
@@ -808,6 +819,8 @@ components:
           name: cool-gpu-server
           id: d290f1ee-6c54-4b01-90e6-d701748f0851
           region: canada-1
+          active_at: 2016-08-29T09:12:33.001Z
+          status_details: downloading
           ssh_user: shadeform
           status: active
       properties:
@@ -864,9 +877,15 @@ components:
         deleted_at: 2016-08-29T09:12:33.001Z
         shade_cloud: true
         shade_instance_type: A6000
+        tags:
+        - tag1
+        - tag1
         cloud: hyperstack
         hourly_price: 210
         cost_estimate: "103.4"
+        boot_time:
+          max_boot_in_sec: 300
+          min_boot_in_sec: 180
         port_mappings:
         - external_port: 80
           internal_port: 8000
@@ -875,6 +894,8 @@ components:
         name: cool-gpu-server
         id: d290f1ee-6c54-4b01-90e6-d701748f0851
         region: canada-1
+        active_at: 2016-08-29T09:12:33.001Z
+        status_details: downloading
         ssh_user: shadeform
         status: active
       properties:
@@ -933,6 +954,10 @@ components:
           type: integer
         status:
           $ref: '#/components/schemas/Status'
+        status_details:
+          description: Additional context for the status
+          example: downloading
+          type: string
         cost_estimate:
           description: "The cost incurred by the instance. This only the cost via\
             \ Shadeform. If the instance is deployed in your own cloud account, then\
@@ -945,12 +970,22 @@ components:
           type: integer
         launch_configuration:
           $ref: '#/components/schemas/LaunchConfiguration'
+        tags:
+          description: "Add custom, searchable tags to instances."
+          items:
+            $ref: '#/components/schemas/Tag'
+          type: array
         port_mappings:
           description: List of port mappings on an instance that a Cloud Provider
             might have automatically set up.
           items:
             $ref: '#/components/schemas/InstancePortMappings'
           type: array
+        active_at:
+          description: The timestamp of when the instance was active in UTC.
+          example: 2016-08-29T09:12:33.001Z
+          format: date-time
+          type: string
         created_at:
           description: The timestamp of when the instance was created in UTC.
           example: 2016-08-29T09:12:33.001Z
@@ -961,6 +996,8 @@ components:
           example: 2016-08-29T09:12:33.001Z
           format: date-time
           type: string
+        boot_time:
+          $ref: '#/components/schemas/BootTime'
       required:
       - cloud
       - cloud_assigned_id
@@ -1016,6 +1053,7 @@ components:
         - external_port: 80
           internal_port: 8000
         id: d290f1ee-6c54-4b01-90e6-d701748f0851
+        status_details: downloading
         ssh_user: shadeform
         volume_mount:
           auto: true
@@ -1055,8 +1093,12 @@ components:
         tags:
         - tag1
         - tag1
+        boot_time:
+          max_boot_in_sec: 300
+          min_boot_in_sec: 180
         name: cool-gpu-server
         region: canada-1
+        active_at: 2016-08-29T09:12:33.001Z
         status: active
       properties:
         id:
@@ -1114,6 +1156,10 @@ components:
           type: integer
         status:
           $ref: '#/components/schemas/Status'
+        status_details:
+          description: Additional context for the status
+          example: downloading
+          type: string
         cost_estimate:
           description: "The cost incurred by the instance. This only the cost via\
             \ Shadeform. If the instance is deployed in your own cloud account, then\
@@ -1159,6 +1205,11 @@ components:
           items:
             $ref: '#/components/schemas/InstancePortMappings'
           type: array
+        active_at:
+          description: The timestamp of when the instance was active in UTC.
+          example: 2016-08-29T09:12:33.001Z
+          format: date-time
+          type: string
         created_at:
           description: The timestamp of when the instance was created in UTC.
           example: 2016-08-29T09:12:33.001Z
@@ -1169,6 +1220,8 @@ components:
           example: 2016-08-29T09:12:33.001Z
           format: date-time
           type: string
+        boot_time:
+          $ref: '#/components/schemas/BootTime'
       required:
       - cloud
       - cloud_assigned_id
@@ -1319,6 +1372,20 @@ components:
       - available
       - display_name
       - region
+      type: object
+    BootTime:
+      example:
+        max_boot_in_sec: 300
+        min_boot_in_sec: 180
+      properties:
+        min_boot_in_sec:
+          description: boot time minimum estimate
+          example: 180
+          type: integer
+        max_boot_in_sec:
+          description: boot time maximum estimate
+          example: 300
+          type: integer
       type: object
     CreateRequest:
       example:
@@ -1774,11 +1841,20 @@ components:
       - deleted
       example: active
       type: string
+    StatusDetails:
+      description: Additional context for the status
+      example: downloading
+      type: string
     CostEstimate:
       description: "The cost incurred by the instance. This only the cost via Shadeform.\
         \ If the instance is deployed in your own cloud account, then all billing\
         \ is through your cloud provider."
       example: "103.4"
+      type: string
+    ActiveAt:
+      description: The timestamp of when the instance was active in UTC.
+      example: 2016-08-29T09:12:33.001Z
+      format: date-time
       type: string
     CreatedAt:
       description: The timestamp of when the instance was created in UTC.

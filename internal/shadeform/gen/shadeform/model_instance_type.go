@@ -30,9 +30,9 @@ type InstanceType struct {
 	// The hourly price of the instance in cents.
 	HourlyPrice int32 `json:"hourly_price"`
 	// Whether the instance is a \"vm\" (virtual machine), a \"container\" (docker container), or \"baremetal\" (bare metal server).
-	DeploymentType string                 `json:"deployment_type"`
-	Availability   []Availability         `json:"availability"`
-	BootTime       map[string]interface{} `json:"boot_time,omitempty"`
+	DeploymentType string         `json:"deployment_type"`
+	Availability   []Availability `json:"availability"`
+	BootTime       *BootTime      `json:"boot_time,omitempty"`
 	// The amount of memory for the instance in gigabytes. Note that this is not VRAM which is determined by GPU type and the number of GPUs.
 	MemoryInGb *int32 `json:"memory_in_gb,omitempty"`
 	// The amount of storage for the instance. If this storage is too low for the instance type, please email support@shadeform.ai as the storage may be adjustable.
@@ -245,19 +245,19 @@ func (o *InstanceType) SetAvailability(v []Availability) {
 }
 
 // GetBootTime returns the BootTime field value if set, zero value otherwise.
-func (o *InstanceType) GetBootTime() map[string]interface{} {
+func (o *InstanceType) GetBootTime() BootTime {
 	if o == nil || IsNil(o.BootTime) {
-		var ret map[string]interface{}
+		var ret BootTime
 		return ret
 	}
-	return o.BootTime
+	return *o.BootTime
 }
 
 // GetBootTimeOk returns a tuple with the BootTime field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *InstanceType) GetBootTimeOk() (map[string]interface{}, bool) {
+func (o *InstanceType) GetBootTimeOk() (*BootTime, bool) {
 	if o == nil || IsNil(o.BootTime) {
-		return map[string]interface{}{}, false
+		return nil, false
 	}
 	return o.BootTime, true
 }
@@ -271,9 +271,9 @@ func (o *InstanceType) HasBootTime() bool {
 	return false
 }
 
-// SetBootTime gets a reference to the given map[string]interface{} and assigns it to the BootTime field.
-func (o *InstanceType) SetBootTime(v map[string]interface{}) {
-	o.BootTime = v
+// SetBootTime gets a reference to the given BootTime and assigns it to the BootTime field.
+func (o *InstanceType) SetBootTime(v BootTime) {
+	o.BootTime = &v
 }
 
 // GetMemoryInGb returns the MemoryInGb field value if set, zero value otherwise.

@@ -17,6 +17,7 @@ Name | Type | Description | Notes
 **SshUser** | **string** | The SSH user used to SSH into the instance. | 
 **SshPort** | **int32** | The SSH port of the instance. In most cases, this will be port 22 but for some clouds, this may be a different port. | 
 **Status** | [**Status**](Status.md) |  | 
+**StatusDetails** | Pointer to **string** | Additional context for the status | [optional] 
 **CostEstimate** | **string** | The cost incurred by the instance. This only the cost via Shadeform. If the instance is deployed in your own cloud account, then all billing is through your cloud provider. | 
 **HourlyPrice** | Pointer to **int32** | The hourly price of the instance in cents. | [optional] 
 **VolumeIds** | Pointer to **[]string** | List of volume IDs to be mounted. Currently only supports 1 volume at a time. | [optional] 
@@ -28,8 +29,10 @@ Name | Type | Description | Notes
 **Tags** | Pointer to **[]string** | Add custom, searchable tags to instances. | [optional] 
 **Envs** | Pointer to [**[]Env**](Env.md) | List of environment variable name and values to automatically add to the instance | [optional] 
 **PortMappings** | Pointer to [**[]InstancePortMappings**](InstancePortMappings.md) | List of port mappings on an instance that a Cloud Provider might have automatically set up. | [optional] 
+**ActiveAt** | Pointer to **time.Time** | The timestamp of when the instance was active in UTC. | [optional] 
 **CreatedAt** | **time.Time** | The timestamp of when the instance was created in UTC. | 
 **DeletedAt** | **time.Time** | The timestamp of when the instance was deleted in UTC. | 
+**BootTime** | Pointer to [**BootTime**](BootTime.md) |  | [optional] 
 
 ## Methods
 
@@ -310,6 +313,31 @@ and a boolean to check if the value has been set.
 SetStatus sets Status field to given value.
 
 
+### GetStatusDetails
+
+`func (o *InstanceInfoResponse) GetStatusDetails() string`
+
+GetStatusDetails returns the StatusDetails field if non-nil, zero value otherwise.
+
+### GetStatusDetailsOk
+
+`func (o *InstanceInfoResponse) GetStatusDetailsOk() (*string, bool)`
+
+GetStatusDetailsOk returns a tuple with the StatusDetails field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetStatusDetails
+
+`func (o *InstanceInfoResponse) SetStatusDetails(v string)`
+
+SetStatusDetails sets StatusDetails field to given value.
+
+### HasStatusDetails
+
+`func (o *InstanceInfoResponse) HasStatusDetails() bool`
+
+HasStatusDetails returns a boolean if a field has been set.
+
 ### GetCostEstimate
 
 `func (o *InstanceInfoResponse) GetCostEstimate() string`
@@ -580,6 +608,31 @@ SetPortMappings sets PortMappings field to given value.
 
 HasPortMappings returns a boolean if a field has been set.
 
+### GetActiveAt
+
+`func (o *InstanceInfoResponse) GetActiveAt() time.Time`
+
+GetActiveAt returns the ActiveAt field if non-nil, zero value otherwise.
+
+### GetActiveAtOk
+
+`func (o *InstanceInfoResponse) GetActiveAtOk() (*time.Time, bool)`
+
+GetActiveAtOk returns a tuple with the ActiveAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetActiveAt
+
+`func (o *InstanceInfoResponse) SetActiveAt(v time.Time)`
+
+SetActiveAt sets ActiveAt field to given value.
+
+### HasActiveAt
+
+`func (o *InstanceInfoResponse) HasActiveAt() bool`
+
+HasActiveAt returns a boolean if a field has been set.
+
 ### GetCreatedAt
 
 `func (o *InstanceInfoResponse) GetCreatedAt() time.Time`
@@ -619,6 +672,31 @@ and a boolean to check if the value has been set.
 
 SetDeletedAt sets DeletedAt field to given value.
 
+
+### GetBootTime
+
+`func (o *InstanceInfoResponse) GetBootTime() BootTime`
+
+GetBootTime returns the BootTime field if non-nil, zero value otherwise.
+
+### GetBootTimeOk
+
+`func (o *InstanceInfoResponse) GetBootTimeOk() (*BootTime, bool)`
+
+GetBootTimeOk returns a tuple with the BootTime field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetBootTime
+
+`func (o *InstanceInfoResponse) SetBootTime(v BootTime)`
+
+SetBootTime sets BootTime field to given value.
+
+### HasBootTime
+
+`func (o *InstanceInfoResponse) HasBootTime() bool`
+
+HasBootTime returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

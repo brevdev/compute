@@ -11,7 +11,7 @@ Name | Type | Description | Notes
 **HourlyPrice** | **int32** | The hourly price of the instance in cents. | 
 **DeploymentType** | **string** | Whether the instance is a \&quot;vm\&quot; (virtual machine), a \&quot;container\&quot; (docker container), or \&quot;baremetal\&quot; (bare metal server). | 
 **Availability** | [**[]Availability**](Availability.md) |  | 
-**BootTime** | Pointer to **map[string]interface{}** |  | [optional] 
+**BootTime** | Pointer to [**BootTime**](BootTime.md) |  | [optional] 
 **MemoryInGb** | Pointer to **int32** | The amount of memory for the instance in gigabytes. Note that this is not VRAM which is determined by GPU type and the number of GPUs. | [optional] 
 **StorageInGb** | Pointer to **int32** | The amount of storage for the instance. If this storage is too low for the instance type, please email support@shadeform.ai as the storage may be adjustable. | [optional] 
 **Vcpus** | Pointer to **int32** | The number of vCPUs for the instance. | [optional] 
@@ -181,20 +181,20 @@ SetAvailability sets Availability field to given value.
 
 ### GetBootTime
 
-`func (o *InstanceType) GetBootTime() map[string]interface{}`
+`func (o *InstanceType) GetBootTime() BootTime`
 
 GetBootTime returns the BootTime field if non-nil, zero value otherwise.
 
 ### GetBootTimeOk
 
-`func (o *InstanceType) GetBootTimeOk() (*map[string]interface{}, bool)`
+`func (o *InstanceType) GetBootTimeOk() (*BootTime, bool)`
 
 GetBootTimeOk returns a tuple with the BootTime field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetBootTime
 
-`func (o *InstanceType) SetBootTime(v map[string]interface{})`
+`func (o *InstanceType) SetBootTime(v BootTime)`
 
 SetBootTime sets BootTime field to given value.
 

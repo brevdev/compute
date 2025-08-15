@@ -10,6 +10,7 @@ docs/AddSshKeyResponse.md
 docs/Alert.md
 docs/AutoDelete.md
 docs/Availability.md
+docs/BootTime.md
 docs/Cloud.md
 docs/CreateRequest.md
 docs/CreateResponse.md
@@ -56,6 +57,7 @@ model_add_ssh_key_response.go
 model_alert.go
 model_auto_delete.go
 model_availability.go
+model_boot_time.go
 model_cloud.go
 model_create_request.go
 model_create_response.go

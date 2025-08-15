@@ -115,5 +115,10 @@ func (c *ShadeformClient) GetReferenceID() string {
 }
 
 func (c *ShadeformClient) makeAuthContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, openapi.ContextAPIKeys, c.apiKey)
+	return context.WithValue(ctx, openapi.ContextAPIKeys, map[string]openapi.APIKey{
+		"ApiKeyAuth": {
+			Key:    c.apiKey,
+			Prefix: "", // or "" if no prefix is needed
+		},
+	})
 }

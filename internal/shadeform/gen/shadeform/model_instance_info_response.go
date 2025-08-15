@@ -45,6 +45,8 @@ type InstanceInfoResponse struct {
 	// The SSH port of the instance. In most cases, this will be port 22 but for some clouds, this may be a different port.
 	SshPort int32  `json:"ssh_port"`
 	Status  Status `json:"status"`
+	// Additional context for the status
+	StatusDetails *string `json:"status_details,omitempty"`
 	// The cost incurred by the instance. This only the cost via Shadeform. If the instance is deployed in your own cloud account, then all billing is through your cloud provider.
 	CostEstimate string `json:"cost_estimate"`
 	// The hourly price of the instance in cents.
@@ -63,10 +65,13 @@ type InstanceInfoResponse struct {
 	Envs []Env `json:"envs,omitempty"`
 	// List of port mappings on an instance that a Cloud Provider might have automatically set up.
 	PortMappings []InstancePortMappings `json:"port_mappings,omitempty"`
+	// The timestamp of when the instance was active in UTC.
+	ActiveAt *time.Time `json:"active_at,omitempty"`
 	// The timestamp of when the instance was created in UTC.
 	CreatedAt time.Time `json:"created_at"`
 	// The timestamp of when the instance was deleted in UTC.
 	DeletedAt            time.Time `json:"deleted_at"`
+	BootTime             *BootTime `json:"boot_time,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -417,6 +422,38 @@ func (o *InstanceInfoResponse) SetStatus(v Status) {
 	o.Status = v
 }
 
+// GetStatusDetails returns the StatusDetails field value if set, zero value otherwise.
+func (o *InstanceInfoResponse) GetStatusDetails() string {
+	if o == nil || IsNil(o.StatusDetails) {
+		var ret string
+		return ret
+	}
+	return *o.StatusDetails
+}
+
+// GetStatusDetailsOk returns a tuple with the StatusDetails field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InstanceInfoResponse) GetStatusDetailsOk() (*string, bool) {
+	if o == nil || IsNil(o.StatusDetails) {
+		return nil, false
+	}
+	return o.StatusDetails, true
+}
+
+// HasStatusDetails returns a boolean if a field has been set.
+func (o *InstanceInfoResponse) HasStatusDetails() bool {
+	if o != nil && !IsNil(o.StatusDetails) {
+		return true
+	}
+
+	return false
+}
+
+// SetStatusDetails gets a reference to the given string and assigns it to the StatusDetails field.
+func (o *InstanceInfoResponse) SetStatusDetails(v string) {
+	o.StatusDetails = &v
+}
+
 // GetCostEstimate returns the CostEstimate field value
 func (o *InstanceInfoResponse) GetCostEstimate() string {
 	if o == nil {
@@ -761,6 +798,38 @@ func (o *InstanceInfoResponse) SetPortMappings(v []InstancePortMappings) {
 	o.PortMappings = v
 }
 
+// GetActiveAt returns the ActiveAt field value if set, zero value otherwise.
+func (o *InstanceInfoResponse) GetActiveAt() time.Time {
+	if o == nil || IsNil(o.ActiveAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.ActiveAt
+}
+
+// GetActiveAtOk returns a tuple with the ActiveAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InstanceInfoResponse) GetActiveAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.ActiveAt) {
+		return nil, false
+	}
+	return o.ActiveAt, true
+}
+
+// HasActiveAt returns a boolean if a field has been set.
+func (o *InstanceInfoResponse) HasActiveAt() bool {
+	if o != nil && !IsNil(o.ActiveAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetActiveAt gets a reference to the given time.Time and assigns it to the ActiveAt field.
+func (o *InstanceInfoResponse) SetActiveAt(v time.Time) {
+	o.ActiveAt = &v
+}
+
 // GetCreatedAt returns the CreatedAt field value
 func (o *InstanceInfoResponse) GetCreatedAt() time.Time {
 	if o == nil {
@@ -809,6 +878,38 @@ func (o *InstanceInfoResponse) SetDeletedAt(v time.Time) {
 	o.DeletedAt = v
 }
 
+// GetBootTime returns the BootTime field value if set, zero value otherwise.
+func (o *InstanceInfoResponse) GetBootTime() BootTime {
+	if o == nil || IsNil(o.BootTime) {
+		var ret BootTime
+		return ret
+	}
+	return *o.BootTime
+}
+
+// GetBootTimeOk returns a tuple with the BootTime field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *InstanceInfoResponse) GetBootTimeOk() (*BootTime, bool) {
+	if o == nil || IsNil(o.BootTime) {
+		return nil, false
+	}
+	return o.BootTime, true
+}
+
+// HasBootTime returns a boolean if a field has been set.
+func (o *InstanceInfoResponse) HasBootTime() bool {
+	if o != nil && !IsNil(o.BootTime) {
+		return true
+	}
+
+	return false
+}
+
+// SetBootTime gets a reference to the given BootTime and assigns it to the BootTime field.
+func (o *InstanceInfoResponse) SetBootTime(v BootTime) {
+	o.BootTime = &v
+}
+
 func (o InstanceInfoResponse) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -832,6 +933,9 @@ func (o InstanceInfoResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize["ssh_user"] = o.SshUser
 	toSerialize["ssh_port"] = o.SshPort
 	toSerialize["status"] = o.Status
+	if !IsNil(o.StatusDetails) {
+		toSerialize["status_details"] = o.StatusDetails
+	}
 	toSerialize["cost_estimate"] = o.CostEstimate
 	if !IsNil(o.HourlyPrice) {
 		toSerialize["hourly_price"] = o.HourlyPrice
@@ -863,8 +967,14 @@ func (o InstanceInfoResponse) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.PortMappings) {
 		toSerialize["port_mappings"] = o.PortMappings
 	}
+	if !IsNil(o.ActiveAt) {
+		toSerialize["active_at"] = o.ActiveAt
+	}
 	toSerialize["created_at"] = o.CreatedAt
 	toSerialize["deleted_at"] = o.DeletedAt
+	if !IsNil(o.BootTime) {
+		toSerialize["boot_time"] = o.BootTime
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -936,6 +1046,7 @@ func (o *InstanceInfoResponse) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "ssh_user")
 		delete(additionalProperties, "ssh_port")
 		delete(additionalProperties, "status")
+		delete(additionalProperties, "status_details")
 		delete(additionalProperties, "cost_estimate")
 		delete(additionalProperties, "hourly_price")
 		delete(additionalProperties, "volume_ids")
@@ -947,8 +1058,10 @@ func (o *InstanceInfoResponse) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "tags")
 		delete(additionalProperties, "envs")
 		delete(additionalProperties, "port_mappings")
+		delete(additionalProperties, "active_at")
 		delete(additionalProperties, "created_at")
 		delete(additionalProperties, "deleted_at")
+		delete(additionalProperties, "boot_time")
 		o.AdditionalProperties = additionalProperties
 	}
 

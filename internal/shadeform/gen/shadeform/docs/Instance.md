@@ -17,12 +17,16 @@ Name | Type | Description | Notes
 **SshUser** | **string** | The SSH user used to SSH into the instance. | 
 **SshPort** | **int32** | The SSH port of the instance. In most cases, this will be port 22 but for some clouds, this may be a different port. | 
 **Status** | [**Status**](Status.md) |  | 
+**StatusDetails** | Pointer to **string** | Additional context for the status | [optional] 
 **CostEstimate** | **string** | The cost incurred by the instance. This only the cost via Shadeform. If the instance is deployed in your own cloud account, then all billing is through your cloud provider. | 
 **HourlyPrice** | Pointer to **int32** | The hourly price of the instance in cents. | [optional] 
 **LaunchConfiguration** | Pointer to [**LaunchConfiguration**](LaunchConfiguration.md) |  | [optional] 
+**Tags** | Pointer to **[]string** | Add custom, searchable tags to instances. | [optional] 
 **PortMappings** | Pointer to [**[]InstancePortMappings**](InstancePortMappings.md) | List of port mappings on an instance that a Cloud Provider might have automatically set up. | [optional] 
+**ActiveAt** | Pointer to **time.Time** | The timestamp of when the instance was active in UTC. | [optional] 
 **CreatedAt** | **time.Time** | The timestamp of when the instance was created in UTC. | 
 **DeletedAt** | **time.Time** | The timestamp of when the instance was deleted in UTC. | 
+**BootTime** | Pointer to [**BootTime**](BootTime.md) |  | [optional] 
 
 ## Methods
 
@@ -303,6 +307,31 @@ and a boolean to check if the value has been set.
 SetStatus sets Status field to given value.
 
 
+### GetStatusDetails
+
+`func (o *Instance) GetStatusDetails() string`
+
+GetStatusDetails returns the StatusDetails field if non-nil, zero value otherwise.
+
+### GetStatusDetailsOk
+
+`func (o *Instance) GetStatusDetailsOk() (*string, bool)`
+
+GetStatusDetailsOk returns a tuple with the StatusDetails field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetStatusDetails
+
+`func (o *Instance) SetStatusDetails(v string)`
+
+SetStatusDetails sets StatusDetails field to given value.
+
+### HasStatusDetails
+
+`func (o *Instance) HasStatusDetails() bool`
+
+HasStatusDetails returns a boolean if a field has been set.
+
 ### GetCostEstimate
 
 `func (o *Instance) GetCostEstimate() string`
@@ -373,6 +402,31 @@ SetLaunchConfiguration sets LaunchConfiguration field to given value.
 
 HasLaunchConfiguration returns a boolean if a field has been set.
 
+### GetTags
+
+`func (o *Instance) GetTags() []string`
+
+GetTags returns the Tags field if non-nil, zero value otherwise.
+
+### GetTagsOk
+
+`func (o *Instance) GetTagsOk() (*[]string, bool)`
+
+GetTagsOk returns a tuple with the Tags field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetTags
+
+`func (o *Instance) SetTags(v []string)`
+
+SetTags sets Tags field to given value.
+
+### HasTags
+
+`func (o *Instance) HasTags() bool`
+
+HasTags returns a boolean if a field has been set.
+
 ### GetPortMappings
 
 `func (o *Instance) GetPortMappings() []InstancePortMappings`
@@ -397,6 +451,31 @@ SetPortMappings sets PortMappings field to given value.
 `func (o *Instance) HasPortMappings() bool`
 
 HasPortMappings returns a boolean if a field has been set.
+
+### GetActiveAt
+
+`func (o *Instance) GetActiveAt() time.Time`
+
+GetActiveAt returns the ActiveAt field if non-nil, zero value otherwise.
+
+### GetActiveAtOk
+
+`func (o *Instance) GetActiveAtOk() (*time.Time, bool)`
+
+GetActiveAtOk returns a tuple with the ActiveAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetActiveAt
+
+`func (o *Instance) SetActiveAt(v time.Time)`
+
+SetActiveAt sets ActiveAt field to given value.
+
+### HasActiveAt
+
+`func (o *Instance) HasActiveAt() bool`
+
+HasActiveAt returns a boolean if a field has been set.
 
 ### GetCreatedAt
 
@@ -437,6 +516,31 @@ and a boolean to check if the value has been set.
 
 SetDeletedAt sets DeletedAt field to given value.
 
+
+### GetBootTime
+
+`func (o *Instance) GetBootTime() BootTime`
+
+GetBootTime returns the BootTime field if non-nil, zero value otherwise.
+
+### GetBootTimeOk
+
+`func (o *Instance) GetBootTimeOk() (*BootTime, bool)`
+
+GetBootTimeOk returns a tuple with the BootTime field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetBootTime
+
+`func (o *Instance) SetBootTime(v BootTime)`
+
+SetBootTime sets BootTime field to given value.
+
+### HasBootTime
+
+`func (o *Instance) HasBootTime() bool`
+
+HasBootTime returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
