@@ -36,7 +36,6 @@ See [SECURITY.md](docs/SECURITY.md) for complete security specifications and imp
 ## Scope and Philosophy
 
 - **Internal-first interface**: This repo reflects the interfaces we use within Brev — open-sourced for shared development.
-- **No provider integrations (yet)**: Initial release does not include AWS, GCP, or other cloud backends. These will follow.
 - **Accelerator-focused**: Designed for GPUs, but extensible to CPU or container-based workloads.
 
 ---
