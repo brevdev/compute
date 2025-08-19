@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/alecthomas/units"
 	openapi "github.com/brevdev/cloud/internal/shadeform/gen/shadeform"
@@ -11,7 +12,9 @@ import (
 )
 
 const (
-	hostname = "shadecloud"
+	hostname              = "shadecloud"
+	refIDTagName          = "refID"
+	cloudCredRefIDTagName = "cloudCredRefID"
 )
 
 func (c *ShadeformClient) CreateInstance(ctx context.Context, attrs v1.CreateInstanceAttrs) (*v1.Instance, error) {
@@ -52,13 +55,35 @@ func (c *ShadeformClient) CreateInstance(ctx context.Context, attrs v1.CreateIns
 		return nil, err
 	}
 
+	// Add refID tag
+	refIDTag, err := c.createTag(refIDTagName, attrs.RefID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add cloudRefID tag
+	cloudCredRefIDTag, err := c.createTag(cloudCredRefIDTagName, c.GetReferenceID())
+	if err != nil {
+		return nil, err
+	}
+
+	tags := []string{refIDTag, cloudCredRefIDTag}
+	// Add all other tags
+	for key, value := range attrs.Tags {
+		createdTag, err := c.createTag(key, value)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, createdTag)
+	}
+
 	req := openapi.CreateRequest{
 		Cloud:             *cloudEnum,
 		Region:            region,
 		ShadeInstanceType: shadeInstanceType,
 		Name:              attrs.Name,
 		ShadeCloud:        true,
-		Tags:              []string{attrs.RefID},
+		Tags:              tags,
 		SshKeyId:          &sshKeyID,
 	}
 
@@ -122,7 +147,12 @@ func (c *ShadeformClient) GetInstance(ctx context.Context, instanceID v1.CloudPr
 		return nil, fmt.Errorf("no instance returned from get request")
 	}
 
-	return c.convertInstanceInfoResponseToV1Instance(*resp), nil
+	instance, err := c.convertInstanceInfoResponseToV1Instance(*resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return instance, nil
 }
 
 func (c *ShadeformClient) TerminateInstance(ctx context.Context, instanceID v1.CloudProviderInstanceID) error {
@@ -152,7 +182,11 @@ func (c *ShadeformClient) ListInstances(ctx context.Context, _ v1.ListInstancesA
 
 	var instances []v1.Instance
 	for _, instance := range resp.Instances {
-		instances = append(instances, *c.convertShadeformInstanceToV1Instance(instance))
+		singleInstance, err := c.convertShadeformInstanceToV1Instance(instance)
+		if err != nil {
+			return nil, err
+		}
+		instances = append(instances, *singleInstance)
 	}
 
 	return instances, nil
@@ -170,10 +204,9 @@ func (c *ShadeformClient) MergeInstanceTypeForUpdate(currIt v1.InstanceType, _ v
 	return currIt
 }
 
-// convertInstanceInfoResponseToV1Instance - converts Instance Info to v1 instance
-func (c *ShadeformClient) convertInstanceInfoResponseToV1Instance(instanceInfo openapi.InstanceInfoResponse) *v1.Instance {
+func (c *ShadeformClient) getLifecycleStatus(status string) v1.LifecycleStatus {
 	var lifecycleStatus v1.LifecycleStatus
-	switch instanceInfo.Status {
+	switch status {
 	case "creating":
 		lifecycleStatus = v1.LifecycleStatusPending
 	case "pending_provider":
@@ -187,13 +220,30 @@ func (c *ShadeformClient) convertInstanceInfoResponseToV1Instance(instanceInfo o
 	default:
 		lifecycleStatus = v1.LifecycleStatusPending
 	}
+	return lifecycleStatus
+}
 
+// convertInstanceInfoResponseToV1Instance - converts Instance Info to v1 instance
+func (c *ShadeformClient) convertInstanceInfoResponseToV1Instance(instanceInfo openapi.InstanceInfoResponse) (*v1.Instance, error) {
 	instanceType := c.getInstanceType(string(instanceInfo.Cloud), instanceInfo.ShadeInstanceType)
+	lifeCycleStatus := c.getLifecycleStatus(string(instanceInfo.Status))
 
-	refID := ""
-	if instanceInfo.Tags != nil && len(instanceInfo.Tags) > 0 {
-		refID = instanceInfo.Tags[0]
+	tags, err := c.convertShadeformTagToV1Tag(instanceInfo.Tags)
+	if err != nil {
+		return nil, err
 	}
+
+	refID, found := tags[refIDTagName]
+	if !found {
+		return nil, errors.New("could not find refID tag")
+	}
+	delete(tags, refIDTagName)
+
+	cloudCredRefID := tags[cloudCredRefIDTagName]
+	if err != nil {
+		return nil, errors.New("could not find cloudCredRefID tag")
+	}
+	delete(tags, cloudCredRefIDTagName)
 
 	instance := &v1.Instance{
 		Name:         instanceInfo.Name,
@@ -207,44 +257,41 @@ func (c *ShadeformClient) convertInstanceInfoResponseToV1Instance(instanceInfo o
 		SSHUser:      instanceInfo.SshUser,
 		SSHPort:      int(instanceInfo.SshPort),
 		Status: v1.Status{
-			LifecycleStatus: lifecycleStatus,
+			LifecycleStatus: lifeCycleStatus,
 		},
-		Spot:       false,
-		Location:   instanceInfo.Region,
-		Stoppable:  false,
-		Rebootable: true,
-		RefID:      refID,
+		Spot:           false,
+		Location:       instanceInfo.Region,
+		Stoppable:      false,
+		Rebootable:     true,
+		RefID:          refID,
+		CloudCredRefID: cloudCredRefID,
 	}
 
-	return instance
+	return instance, nil
 }
 
 // convertInstanceInfoResponseToV1Instance - converts /instances response to v1 instance; the api struct is slightly
-// different from instance info so keeping it as a separate function for now
-func (c *ShadeformClient) convertShadeformInstanceToV1Instance(shadeformInstance openapi.Instance) *v1.Instance {
-
-	var lifecycleStatus v1.LifecycleStatus
-	switch shadeformInstance.Status {
-	case "creating":
-		lifecycleStatus = v1.LifecycleStatusPending
-	case "pending_provider":
-		lifecycleStatus = v1.LifecycleStatusPending
-	case "pending":
-		lifecycleStatus = v1.LifecycleStatusPending
-	case "active":
-		lifecycleStatus = v1.LifecycleStatusRunning
-	case "error":
-		lifecycleStatus = v1.LifecycleStatusFailed
-	default:
-		lifecycleStatus = v1.LifecycleStatusPending
-	}
-
+// different from instance info response and expected to diverge so keeping it as a separate function for now
+func (c *ShadeformClient) convertShadeformInstanceToV1Instance(shadeformInstance openapi.Instance) (*v1.Instance, error) {
 	instanceType := c.getInstanceType(string(shadeformInstance.Cloud), shadeformInstance.ShadeInstanceType)
+	lifeCycleStatus := c.getLifecycleStatus(string(shadeformInstance.Status))
 
-	refID := ""
-	if shadeformInstance.Tags != nil && len(shadeformInstance.Tags) > 0 {
-		refID = shadeformInstance.Tags[0]
+	tags, err := c.convertShadeformTagToV1Tag(shadeformInstance.Tags)
+	if err != nil {
+		return nil, err
 	}
+
+	refID, found := tags[refIDTagName]
+	if !found {
+		return nil, errors.New("could not find refID tag")
+	}
+	delete(tags, refIDTagName)
+
+	cloudCredRefID := tags[cloudCredRefIDTagName]
+	if err != nil {
+		return nil, errors.New("could not find cloudCredRefID tag")
+	}
+	delete(tags, cloudCredRefIDTagName)
 
 	instance := &v1.Instance{
 		Name:         shadeformInstance.Name,
@@ -258,14 +305,44 @@ func (c *ShadeformClient) convertShadeformInstanceToV1Instance(shadeformInstance
 		SSHUser:      shadeformInstance.SshUser,
 		SSHPort:      int(shadeformInstance.SshPort),
 		Status: v1.Status{
-			LifecycleStatus: lifecycleStatus,
+			LifecycleStatus: lifeCycleStatus,
 		},
-		Spot:       false,
-		Location:   shadeformInstance.Region,
-		Stoppable:  false,
-		Rebootable: true,
-		RefID:      refID,
+		Spot:           false,
+		Location:       shadeformInstance.Region,
+		Stoppable:      false,
+		Rebootable:     true,
+		RefID:          refID,
+		Tags:           tags,
+		CloudCredRefID: cloudCredRefID,
 	}
 
-	return instance
+	return instance, nil
+}
+
+func (c *ShadeformClient) convertShadeformTagToV1Tag(shadeformTags []string) (v1.Tags, error) {
+	tags := v1.Tags{}
+	for _, tag := range shadeformTags {
+		key, value, err := c.getTag(tag)
+		if err != nil {
+			return nil, err
+		}
+		tags[key] = value
+	}
+	return tags, nil
+}
+
+func (c *ShadeformClient) createTag(key string, value string) (string, error) {
+	if strings.Contains(key, "=") {
+		return "", errors.New("tags cannot contain the '=' character")
+	}
+
+	return fmt.Sprintf("%v=%v", key, value), nil
+}
+
+func (c *ShadeformClient) getTag(shadeformTag string) (string, string, error) {
+	key, value, found := strings.Cut(shadeformTag, "=")
+	if !found {
+		return "", "", errors.New(fmt.Sprintf("tag %v does not conform to the key value tag format", shadeformTag))
+	}
+	return key, value, nil
 }
