@@ -88,10 +88,16 @@ func ValidateListCreatedInstance(ctx context.Context, client CloudCreateTerminat
 	if foundInstance == nil {
 		validationErr = errors.Join(validationErr, fmt.Errorf("instance not found: %s", i.CloudID))
 	}
-	if foundInstance.Location != i.Location {
+	if foundInstance.Location != i.Location { //nolint:gocritic // fine
 		validationErr = errors.Join(validationErr, fmt.Errorf("location mismatch: %s != %s", foundInstance.Location, i.Location))
+	} else if foundInstance.RefID == "" {
+		validationErr = errors.Join(validationErr, fmt.Errorf("refID is empty"))
 	} else if foundInstance.RefID != i.RefID {
 		validationErr = errors.Join(validationErr, fmt.Errorf("refID mismatch: %s != %s", foundInstance.RefID, i.RefID))
+	} else if foundInstance.CloudCredRefID == "" {
+		validationErr = errors.Join(validationErr, fmt.Errorf("cloudCredRefID is empty"))
+	} else if foundInstance.CloudCredRefID != i.CloudCredRefID {
+		validationErr = errors.Join(validationErr, fmt.Errorf("cloudCredRefID mismatch: %s != %s", foundInstance.CloudCredRefID, i.CloudCredRefID))
 	}
 	return validationErr
 }
