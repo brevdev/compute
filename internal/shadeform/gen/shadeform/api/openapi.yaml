@@ -499,7 +499,12 @@ components:
       description: Response of /instances/types
       example:
         instance_types:
-        - nvlink: true
+        - cloud: hyperstack
+          hourly_price: 210
+          deployment_type: vm
+          boot_time:
+            max_boot_in_sec: 300
+            min_boot_in_sec: 180
           configuration:
             nvlink: true
             num_gpus: 1
@@ -512,10 +517,7 @@ components:
             os_options:
             - ubuntu22.04_cuda12.2_shade_os
             - ubuntu20.04_cuda12.0_shade_os
-          num_gpus: 1
-          gpu_type: A100
           cloud_instance_type: gpu_1x_a6000
-          memory_in_gb: 12
           availability:
           - region: us-central-1
             available: true
@@ -523,17 +525,13 @@ components:
           - region: us-central-2
             available: false
             display_name: "US, Wichita, KS"
-          vcpus: 6
-          interconnect: pcie
           shade_instance_type: A6000
-          cloud: hyperstack
+        - cloud: hyperstack
           hourly_price: 210
           deployment_type: vm
           boot_time:
             max_boot_in_sec: 300
             min_boot_in_sec: 180
-          storage_in_gb: 256
-        - nvlink: true
           configuration:
             nvlink: true
             num_gpus: 1
@@ -546,10 +544,7 @@ components:
             os_options:
             - ubuntu22.04_cuda12.2_shade_os
             - ubuntu20.04_cuda12.0_shade_os
-          num_gpus: 1
-          gpu_type: A100
           cloud_instance_type: gpu_1x_a6000
-          memory_in_gb: 12
           availability:
           - region: us-central-1
             available: true
@@ -557,16 +552,7 @@ components:
           - region: us-central-2
             available: false
             display_name: "US, Wichita, KS"
-          vcpus: 6
-          interconnect: pcie
           shade_instance_type: A6000
-          cloud: hyperstack
-          hourly_price: 210
-          deployment_type: vm
-          boot_time:
-            max_boot_in_sec: 300
-            min_boot_in_sec: 180
-          storage_in_gb: 256
       properties:
         instance_types:
           items:
@@ -578,7 +564,12 @@ components:
     InstanceType:
       description: Information about a specific instance type
       example:
-        nvlink: true
+        cloud: hyperstack
+        hourly_price: 210
+        deployment_type: vm
+        boot_time:
+          max_boot_in_sec: 300
+          min_boot_in_sec: 180
         configuration:
           nvlink: true
           num_gpus: 1
@@ -591,10 +582,7 @@ components:
           os_options:
           - ubuntu22.04_cuda12.2_shade_os
           - ubuntu20.04_cuda12.0_shade_os
-        num_gpus: 1
-        gpu_type: A100
         cloud_instance_type: gpu_1x_a6000
-        memory_in_gb: 12
         availability:
         - region: us-central-1
           available: true
@@ -602,16 +590,7 @@ components:
         - region: us-central-2
           available: false
           display_name: "US, Wichita, KS"
-        vcpus: 6
-        interconnect: pcie
         shade_instance_type: A6000
-        cloud: hyperstack
-        hourly_price: 210
-        deployment_type: vm
-        boot_time:
-          max_boot_in_sec: 300
-          min_boot_in_sec: 180
-        storage_in_gb: 256
       properties:
         cloud:
           $ref: '#/components/schemas/Cloud'
@@ -650,37 +629,6 @@ components:
           type: array
         boot_time:
           $ref: '#/components/schemas/BootTime'
-        memory_in_gb:
-          description: The amount of memory for the instance in gigabytes. Note that
-            this is not VRAM which is determined by GPU type and the number of GPUs.
-          example: 12
-          type: integer
-        storage_in_gb:
-          description: "The amount of storage for the instance. If this storage is\
-            \ too low for the instance type, please email support@shadeform.ai as\
-            \ the storage may be adjustable."
-          example: 256
-          type: integer
-        vcpus:
-          description: The number of vCPUs for the instance.
-          example: 6
-          type: integer
-        num_gpus:
-          description: The number of GPUs for the instance.
-          example: 1
-          type: integer
-        gpu_type:
-          description: The type of GPU for the instance.
-          example: A100
-          type: string
-        interconnect:
-          description: The type of GPU interconnect.
-          example: pcie
-          type: string
-        nvlink:
-          description: If the instance has NVLink
-          example: true
-          type: boolean
       required:
       - availability
       - cloud

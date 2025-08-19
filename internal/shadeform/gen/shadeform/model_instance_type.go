@@ -30,23 +30,9 @@ type InstanceType struct {
 	// The hourly price of the instance in cents.
 	HourlyPrice int32 `json:"hourly_price"`
 	// Whether the instance is a \"vm\" (virtual machine), a \"container\" (docker container), or \"baremetal\" (bare metal server).
-	DeploymentType string         `json:"deployment_type"`
-	Availability   []Availability `json:"availability"`
-	BootTime       *BootTime      `json:"boot_time,omitempty"`
-	// The amount of memory for the instance in gigabytes. Note that this is not VRAM which is determined by GPU type and the number of GPUs.
-	MemoryInGb *int32 `json:"memory_in_gb,omitempty"`
-	// The amount of storage for the instance. If this storage is too low for the instance type, please email support@shadeform.ai as the storage may be adjustable.
-	StorageInGb *int32 `json:"storage_in_gb,omitempty"`
-	// The number of vCPUs for the instance.
-	Vcpus *int32 `json:"vcpus,omitempty"`
-	// The number of GPUs for the instance.
-	NumGpus *int32 `json:"num_gpus,omitempty"`
-	// The type of GPU for the instance.
-	GpuType *string `json:"gpu_type,omitempty"`
-	// The type of GPU interconnect.
-	Interconnect *string `json:"interconnect,omitempty"`
-	// If the instance has NVLink
-	Nvlink               *bool `json:"nvlink,omitempty"`
+	DeploymentType       string         `json:"deployment_type"`
+	Availability         []Availability `json:"availability"`
+	BootTime             *BootTime      `json:"boot_time,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -276,230 +262,6 @@ func (o *InstanceType) SetBootTime(v BootTime) {
 	o.BootTime = &v
 }
 
-// GetMemoryInGb returns the MemoryInGb field value if set, zero value otherwise.
-func (o *InstanceType) GetMemoryInGb() int32 {
-	if o == nil || IsNil(o.MemoryInGb) {
-		var ret int32
-		return ret
-	}
-	return *o.MemoryInGb
-}
-
-// GetMemoryInGbOk returns a tuple with the MemoryInGb field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InstanceType) GetMemoryInGbOk() (*int32, bool) {
-	if o == nil || IsNil(o.MemoryInGb) {
-		return nil, false
-	}
-	return o.MemoryInGb, true
-}
-
-// HasMemoryInGb returns a boolean if a field has been set.
-func (o *InstanceType) HasMemoryInGb() bool {
-	if o != nil && !IsNil(o.MemoryInGb) {
-		return true
-	}
-
-	return false
-}
-
-// SetMemoryInGb gets a reference to the given int32 and assigns it to the MemoryInGb field.
-func (o *InstanceType) SetMemoryInGb(v int32) {
-	o.MemoryInGb = &v
-}
-
-// GetStorageInGb returns the StorageInGb field value if set, zero value otherwise.
-func (o *InstanceType) GetStorageInGb() int32 {
-	if o == nil || IsNil(o.StorageInGb) {
-		var ret int32
-		return ret
-	}
-	return *o.StorageInGb
-}
-
-// GetStorageInGbOk returns a tuple with the StorageInGb field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InstanceType) GetStorageInGbOk() (*int32, bool) {
-	if o == nil || IsNil(o.StorageInGb) {
-		return nil, false
-	}
-	return o.StorageInGb, true
-}
-
-// HasStorageInGb returns a boolean if a field has been set.
-func (o *InstanceType) HasStorageInGb() bool {
-	if o != nil && !IsNil(o.StorageInGb) {
-		return true
-	}
-
-	return false
-}
-
-// SetStorageInGb gets a reference to the given int32 and assigns it to the StorageInGb field.
-func (o *InstanceType) SetStorageInGb(v int32) {
-	o.StorageInGb = &v
-}
-
-// GetVcpus returns the Vcpus field value if set, zero value otherwise.
-func (o *InstanceType) GetVcpus() int32 {
-	if o == nil || IsNil(o.Vcpus) {
-		var ret int32
-		return ret
-	}
-	return *o.Vcpus
-}
-
-// GetVcpusOk returns a tuple with the Vcpus field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InstanceType) GetVcpusOk() (*int32, bool) {
-	if o == nil || IsNil(o.Vcpus) {
-		return nil, false
-	}
-	return o.Vcpus, true
-}
-
-// HasVcpus returns a boolean if a field has been set.
-func (o *InstanceType) HasVcpus() bool {
-	if o != nil && !IsNil(o.Vcpus) {
-		return true
-	}
-
-	return false
-}
-
-// SetVcpus gets a reference to the given int32 and assigns it to the Vcpus field.
-func (o *InstanceType) SetVcpus(v int32) {
-	o.Vcpus = &v
-}
-
-// GetNumGpus returns the NumGpus field value if set, zero value otherwise.
-func (o *InstanceType) GetNumGpus() int32 {
-	if o == nil || IsNil(o.NumGpus) {
-		var ret int32
-		return ret
-	}
-	return *o.NumGpus
-}
-
-// GetNumGpusOk returns a tuple with the NumGpus field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InstanceType) GetNumGpusOk() (*int32, bool) {
-	if o == nil || IsNil(o.NumGpus) {
-		return nil, false
-	}
-	return o.NumGpus, true
-}
-
-// HasNumGpus returns a boolean if a field has been set.
-func (o *InstanceType) HasNumGpus() bool {
-	if o != nil && !IsNil(o.NumGpus) {
-		return true
-	}
-
-	return false
-}
-
-// SetNumGpus gets a reference to the given int32 and assigns it to the NumGpus field.
-func (o *InstanceType) SetNumGpus(v int32) {
-	o.NumGpus = &v
-}
-
-// GetGpuType returns the GpuType field value if set, zero value otherwise.
-func (o *InstanceType) GetGpuType() string {
-	if o == nil || IsNil(o.GpuType) {
-		var ret string
-		return ret
-	}
-	return *o.GpuType
-}
-
-// GetGpuTypeOk returns a tuple with the GpuType field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InstanceType) GetGpuTypeOk() (*string, bool) {
-	if o == nil || IsNil(o.GpuType) {
-		return nil, false
-	}
-	return o.GpuType, true
-}
-
-// HasGpuType returns a boolean if a field has been set.
-func (o *InstanceType) HasGpuType() bool {
-	if o != nil && !IsNil(o.GpuType) {
-		return true
-	}
-
-	return false
-}
-
-// SetGpuType gets a reference to the given string and assigns it to the GpuType field.
-func (o *InstanceType) SetGpuType(v string) {
-	o.GpuType = &v
-}
-
-// GetInterconnect returns the Interconnect field value if set, zero value otherwise.
-func (o *InstanceType) GetInterconnect() string {
-	if o == nil || IsNil(o.Interconnect) {
-		var ret string
-		return ret
-	}
-	return *o.Interconnect
-}
-
-// GetInterconnectOk returns a tuple with the Interconnect field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InstanceType) GetInterconnectOk() (*string, bool) {
-	if o == nil || IsNil(o.Interconnect) {
-		return nil, false
-	}
-	return o.Interconnect, true
-}
-
-// HasInterconnect returns a boolean if a field has been set.
-func (o *InstanceType) HasInterconnect() bool {
-	if o != nil && !IsNil(o.Interconnect) {
-		return true
-	}
-
-	return false
-}
-
-// SetInterconnect gets a reference to the given string and assigns it to the Interconnect field.
-func (o *InstanceType) SetInterconnect(v string) {
-	o.Interconnect = &v
-}
-
-// GetNvlink returns the Nvlink field value if set, zero value otherwise.
-func (o *InstanceType) GetNvlink() bool {
-	if o == nil || IsNil(o.Nvlink) {
-		var ret bool
-		return ret
-	}
-	return *o.Nvlink
-}
-
-// GetNvlinkOk returns a tuple with the Nvlink field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *InstanceType) GetNvlinkOk() (*bool, bool) {
-	if o == nil || IsNil(o.Nvlink) {
-		return nil, false
-	}
-	return o.Nvlink, true
-}
-
-// HasNvlink returns a boolean if a field has been set.
-func (o *InstanceType) HasNvlink() bool {
-	if o != nil && !IsNil(o.Nvlink) {
-		return true
-	}
-
-	return false
-}
-
-// SetNvlink gets a reference to the given bool and assigns it to the Nvlink field.
-func (o *InstanceType) SetNvlink(v bool) {
-	o.Nvlink = &v
-}
-
 func (o InstanceType) MarshalJSON() ([]byte, error) {
 	toSerialize, err := o.ToMap()
 	if err != nil {
@@ -519,27 +281,6 @@ func (o InstanceType) ToMap() (map[string]interface{}, error) {
 	toSerialize["availability"] = o.Availability
 	if !IsNil(o.BootTime) {
 		toSerialize["boot_time"] = o.BootTime
-	}
-	if !IsNil(o.MemoryInGb) {
-		toSerialize["memory_in_gb"] = o.MemoryInGb
-	}
-	if !IsNil(o.StorageInGb) {
-		toSerialize["storage_in_gb"] = o.StorageInGb
-	}
-	if !IsNil(o.Vcpus) {
-		toSerialize["vcpus"] = o.Vcpus
-	}
-	if !IsNil(o.NumGpus) {
-		toSerialize["num_gpus"] = o.NumGpus
-	}
-	if !IsNil(o.GpuType) {
-		toSerialize["gpu_type"] = o.GpuType
-	}
-	if !IsNil(o.Interconnect) {
-		toSerialize["interconnect"] = o.Interconnect
-	}
-	if !IsNil(o.Nvlink) {
-		toSerialize["nvlink"] = o.Nvlink
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -598,13 +339,6 @@ func (o *InstanceType) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "deployment_type")
 		delete(additionalProperties, "availability")
 		delete(additionalProperties, "boot_time")
-		delete(additionalProperties, "memory_in_gb")
-		delete(additionalProperties, "storage_in_gb")
-		delete(additionalProperties, "vcpus")
-		delete(additionalProperties, "num_gpus")
-		delete(additionalProperties, "gpu_type")
-		delete(additionalProperties, "interconnect")
-		delete(additionalProperties, "nvlink")
 		o.AdditionalProperties = additionalProperties
 	}
 
