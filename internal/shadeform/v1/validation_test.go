@@ -1,10 +1,16 @@
 package v1
 
 import (
+	"context"
+	openapi "github.com/brevdev/cloud/internal/shadeform/gen/shadeform"
 	"github.com/brevdev/cloud/internal/validation"
+	"github.com/brevdev/cloud/pkg/ssh"
 	v1 "github.com/brevdev/cloud/pkg/v1"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestValidationFunctions(t *testing.T) {
@@ -28,6 +34,56 @@ func TestInstanceLifecycleValidation(t *testing.T) {
 	}
 
 	validation.RunInstanceLifecycleValidation(t, config)
+}
+
+func TestInstanceTypeFilter(t *testing.T) {
+	checkSkip(t)
+	apiKey := getAPIKey()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
+	defer cancel()
+
+	client := NewShadeformClient("validation-test", apiKey)
+	client.WithConfiguration(Configuration{
+		AllowedInstanceTypes: map[openapi.Cloud]map[string]bool{
+			openapi.DATACRUNCH: {
+				"B200": true,
+			},
+		},
+	})
+
+	types, err := client.GetInstanceTypes(ctx, v1.GetInstanceTypeArgs{})
+	require.NoError(t, err)
+	require.NotEmpty(t, types, "Should have instance types")
+	require.True(t, len(types) == 1, "Instance types should return only one entry")
+	require.True(t, types[0].Type == "datacrunch_B200", "returned instance type does not match expectations")
+
+	if !types[0].IsAvailable {
+		return
+	}
+
+	instance, err := client.CreateInstance(ctx, v1.CreateInstanceAttrs{
+		RefID:        uuid.New().String(),
+		InstanceType: types[0].Type,
+		Location:     types[0].Location,
+		PublicKey:    ssh.GetTestPublicKey(),
+		Name:         "test_name",
+	})
+
+	if err != nil {
+		t.Fatalf("ValidateCreateInstance failed: %v", err)
+	}
+	require.NotNil(t, instance)
+
+	t.Run("ValidateSSHAccessible", func(t *testing.T) {
+		err := v1.ValidateInstanceSSHAccessible(ctx, client, instance, ssh.GetTestPrivateKey())
+		require.NoError(t, err, "ValidateSSHAccessible should pass")
+	})
+
+	t.Run("ValidateTerminateInstance", func(t *testing.T) {
+		err := v1.ValidateTerminateInstance(ctx, client, instance)
+		require.NoError(t, err, "ValidateTerminateInstance should pass")
+	})
 }
 
 func checkSkip(t *testing.T) {

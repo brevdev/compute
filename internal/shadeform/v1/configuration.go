@@ -1,18 +1,24 @@
 package v1
 
+import (
+	openapi "github.com/brevdev/cloud/internal/shadeform/gen/shadeform"
+)
+
 type Configuration struct {
-	AllowedInstanceTypes map[string][]string
+	AllowedInstanceTypes map[openapi.Cloud]map[string]bool
 }
 
-func (c *Configuration) isAllowed(cloud string, shadeInstanceType string) bool {
-	allowedInstanceTypes, found := c.AllowedInstanceTypes[cloud]
+func (c *Configuration) isAllowed(cloud openapi.Cloud, shadeInstanceType string) bool {
+
+	allowedClouds, found := c.AllowedInstanceTypes[cloud]
 	if !found {
 		return false
 	}
-	for _, allowedInstanceType := range allowedInstanceTypes {
-		if shadeInstanceType == allowedInstanceType {
-			return true
-		}
+
+	_, found = allowedClouds[shadeInstanceType]
+	if !found {
+		return false
 	}
-	return false
+
+	return found
 }

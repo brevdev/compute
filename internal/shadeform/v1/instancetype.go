@@ -44,7 +44,12 @@ func (c *ShadeformClient) GetInstanceTypes(ctx context.Context, args v1.GetInsta
 		if err != nil {
 			return nil, err
 		}
-		instanceTypes = append(instanceTypes, instanceTypesFromShadeformInstanceType...)
+		// Filter the list down to the instance types that are allowed by the configuration filter
+		for _, singleInstanceType := range instanceTypesFromShadeformInstanceType {
+			if c.isInstanceTypeAllowed(singleInstanceType.Type) {
+				instanceTypes = append(instanceTypes, singleInstanceType)
+			}
+		}
 	}
 
 	return instanceTypes, nil
@@ -95,6 +100,29 @@ func (c *ShadeformClient) GetLocations(ctx context.Context, _ v1.GetLocationsArg
 	return locations, nil
 }
 
+// isInstanceTypeAllowed - determines if an instance type is allowed based on configuration
+func (c *ShadeformClient) isInstanceTypeAllowed(instanceType string) bool {
+
+	// By default, everything is allowed
+	if c.config == nil || c.config.AllowedInstanceTypes == nil {
+		return true
+	}
+
+	// Convert to Cloud and Instance Type
+	cloud, shadeInstanceType, err := c.getShadeformCloudAndInstanceType(instanceType)
+	if err != nil {
+		return false
+	}
+
+	// Convert to API Cloud Enum
+	cloudEnum, err := openapi.NewCloudFromValue(cloud)
+	if err != nil {
+		return false
+	}
+
+	return c.config.isAllowed(*cloudEnum, shadeInstanceType)
+}
+
 // getInstanceType - gets the Brev instance type from the shadeform cloud and shade instance type
 // TODO: determine if it would be better to include the shadeform cloud inside the region / location instead
 func (c *ShadeformClient) getInstanceType(shadeformCloud string, shadeformInstanceType string) string {
@@ -109,7 +137,7 @@ func (c *ShadeformClient) getInstanceTypeID(instanceType string, region string) 
 func (c *ShadeformClient) getShadeformCloudAndInstanceType(instanceType string) (string, string, error) {
 	shadeformCloud, shadeformInstanceType, found := strings.Cut(instanceType, "_")
 	if !found {
-		return "", "", errors.New("Could not determine shadeform cloud and instance type from instance type")
+		return "", "", errors.New("could not determine shadeform cloud and instance type from instance type")
 	}
 	return shadeformCloud, shadeformInstanceType, nil
 }
@@ -138,9 +166,8 @@ func (c *ShadeformClient) convertShadeformInstanceTypeToV1InstanceType(shadeform
 					MemoryDetails:  "",
 					NetworkDetails: "",
 					Manufacturer:   "",
-					// TODO: Need to double check if there is a standard for name and type
-					Name: shadeformInstanceType.Configuration.GpuType,
-					Type: shadeformInstanceType.Configuration.GpuType,
+					Name:           shadeformInstanceType.Configuration.GpuType,
+					Type:           shadeformInstanceType.Configuration.GpuType,
 				},
 			},
 			BasePrice:   basePrice,

@@ -6,6 +6,8 @@ import (
 	"github.com/alecthomas/units"
 	openapi "github.com/brevdev/cloud/internal/shadeform/gen/shadeform"
 	"github.com/brevdev/cloud/pkg/v1"
+	"github.com/google/uuid"
+	"strings"
 )
 
 const (
@@ -14,6 +16,30 @@ const (
 
 func (c *ShadeformClient) CreateInstance(ctx context.Context, attrs v1.CreateInstanceAttrs) (*v1.Instance, error) {
 	authCtx := c.makeAuthContext(ctx)
+
+	// Check if the instance type is allowed by configuration
+	if !c.isInstanceTypeAllowed(attrs.InstanceType) {
+		return nil, fmt.Errorf("instance type: %v is not deployable", attrs.InstanceType)
+	}
+
+	sshKeyID := ""
+
+	keyPairName := attrs.RefID
+	if attrs.KeyPairName != nil {
+		keyPairName = *attrs.KeyPairName
+	}
+
+	if keyPairName == "" {
+		keyPairName = uuid.New().String()
+	}
+
+	if attrs.PublicKey != "" {
+		var err error
+		sshKeyID, err = c.addSshKey(ctx, keyPairName, attrs.PublicKey)
+		if err != nil && !strings.Contains(err.Error(), "name must be unique") {
+			return nil, fmt.Errorf("failed to add SSH key: %w", err)
+		}
+	}
 
 	region := attrs.Location
 	cloud, shadeInstanceType, err := c.getShadeformCloudAndInstanceType(attrs.InstanceType)
@@ -33,6 +59,7 @@ func (c *ShadeformClient) CreateInstance(ctx context.Context, attrs v1.CreateIns
 		Name:              attrs.Name,
 		ShadeCloud:        true,
 		Tags:              []string{attrs.RefID},
+		SshKeyId:          &sshKeyID,
 	}
 
 	resp, httpResp, err := c.client.DefaultAPI.InstancesCreate(authCtx).CreateRequest(req).Execute()
@@ -55,6 +82,29 @@ func (c *ShadeformClient) CreateInstance(ctx context.Context, attrs v1.CreateIns
 	}
 
 	return createdInstance, nil
+}
+
+func (c *ShadeformClient) addSshKey(ctx context.Context, keyPairName string, publicKey string) (string, error) {
+	authCtx := c.makeAuthContext(ctx)
+
+	request := openapi.AddSshKeyRequest{
+		Name:      keyPairName,
+		PublicKey: publicKey,
+	}
+
+	resp, httpResp, err := c.client.DefaultAPI.SshKeysAdd(authCtx).AddSshKeyRequest(request).Execute()
+	if httpResp != nil && httpResp.Body != nil {
+		defer func() { _ = httpResp.Body.Close() }()
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to add SSH Key: %w", err)
+	}
+
+	if resp == nil {
+		return "", fmt.Errorf("no instance returned from post request")
+	}
+
+	return resp.Id, nil
 }
 
 func (c *ShadeformClient) GetInstance(ctx context.Context, instanceID v1.CloudProviderInstanceID) (*v1.Instance, error) {
