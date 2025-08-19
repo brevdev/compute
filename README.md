@@ -1,8 +1,6 @@
-# Brev Cloud SDK (v1)
+# Cloud SDK (v1)
 
 An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerated compute** across cloud providers.
-
-> This is the internal interface we use at Brev — now open-sourced to align with NVIDIA Cloud Partners (NCPs) and collaborators building GPU infrastructure.
 
 ---
 
@@ -16,7 +14,6 @@ An early-stage, vendor-agnostic Go SDK for managing **clusterable, GPU-accelerat
   - `Location`
 
 - Enable **clusterable GPU workloads** across multiple providers, with shared semantics and L3 network guarantees. (WIP)
-- Provide a foundation for Brev's `launchables`, `instances`, and provisioning flows.
 
 ---
 
@@ -30,14 +27,6 @@ All cloud integrations must follow our [Security Requirements](SECURITY.md), whi
 - **Implementation Guidelines**: Security checklists for cloud provider integrations
 
 See [SECURITY.md](docs/SECURITY.md) for complete security specifications and implementation requirements.
-
----
-
-## Scope and Philosophy
-
-- **Internal-first interface**: This repo reflects the interfaces we use within Brev — open-sourced for shared development.
-- **No provider integrations (yet)**: Initial release does not include AWS, GCP, or other cloud backends. These will follow.
-- **Accelerator-focused**: Designed for GPUs, but extensible to CPU or container-based workloads.
 
 ---
 
