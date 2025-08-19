@@ -26,18 +26,17 @@ func TestValidationFunctions(t *testing.T) {
 	validation.RunValidationSuite(t, config)
 }
 
-//
-//func TestInstanceLifecycleValidation(t *testing.T) {
-//	t.Parallel()
-//	checkSkip(t)
-//	apiKey := getAPIKey()
-//
-//	config := validation.ProviderConfig{
-//		Credential: NewShadeformCredential("validation-test", apiKey),
-//	}
-//
-//	validation.RunInstanceLifecycleValidation(t, config)
-//}
+func TestInstanceLifecycleValidation(t *testing.T) {
+	t.Parallel()
+	checkSkip(t)
+	apiKey := getAPIKey()
+
+	config := validation.ProviderConfig{
+		Credential: NewShadeformCredential("validation-test", apiKey),
+	}
+
+	validation.RunInstanceLifecycleValidation(t, config)
+}
 
 func TestInstanceTypeFilter(t *testing.T) {
 	t.Parallel()
