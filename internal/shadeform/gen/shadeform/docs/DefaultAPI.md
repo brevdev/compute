@@ -47,7 +47,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -108,7 +108,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -174,7 +174,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -242,7 +242,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -312,7 +312,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -380,7 +380,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -458,7 +458,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -528,7 +528,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -589,7 +589,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -655,7 +655,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -723,7 +723,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -793,7 +793,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -861,7 +861,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -922,7 +922,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -990,7 +990,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -1051,7 +1051,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -1121,7 +1121,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -1187,7 +1187,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -1257,7 +1257,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -1318,7 +1318,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -1384,7 +1384,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -1452,7 +1452,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {
@@ -1522,7 +1522,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 )
 
 func main() {

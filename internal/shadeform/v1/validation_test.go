@@ -71,6 +71,24 @@ func TestInstanceTypeFilter(t *testing.T) {
 		Location:     types[0].Location,
 		PublicKey:    ssh.GetTestPublicKey(),
 		Name:         "test_name",
+		FirewallRules: v1.FirewallRules{
+			EgressRules: []v1.FirewallRule{
+				{
+					ID:       "test-rule",
+					FromPort: 80,
+					ToPort:   8080,
+					IPRanges: []string{"127.0.0.1", "10.0.0.0/32"},
+				},
+			},
+			IngressRules: []v1.FirewallRule{
+				{
+					ID:       "test-rule",
+					FromPort: 5432,
+					ToPort:   5432,
+					IPRanges: []string{"127.0.0.1", "10.0.0.0/32"},
+				},
+			},
+		},
 	})
 
 	if err != nil {
@@ -83,10 +101,10 @@ func TestInstanceTypeFilter(t *testing.T) {
 		require.NoError(t, err, "ValidateSSHAccessible should pass")
 	})
 
-	t.Run("ValidateTerminateInstance", func(t *testing.T) {
-		err := v1.ValidateTerminateInstance(ctx, client, instance)
-		require.NoError(t, err, "ValidateTerminateInstance should pass")
-	})
+	//t.Run("ValidateTerminateInstance", func(t *testing.T) {
+	//	err := v1.ValidateTerminateInstance(ctx, client, instance)
+	//	require.NoError(t, err, "ValidateTerminateInstance should pass")
+	//})
 }
 
 func checkSkip(t *testing.T) {

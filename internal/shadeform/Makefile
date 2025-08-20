@@ -3,8 +3,8 @@ generate-shadeform-client:
 		--additional-properties disallowAdditionalPropertiesIfNotPresent=false \
 		-i https://raw.githubusercontent.com/shadeform/docs/refs/heads/main/openapi.yaml \
 		-g go \
-		--git-user-id shadeform \
-		--git-repo-id cloud-shadeform \
+		--git-user-id brevdev \
+		--git-repo-id cloud \
 		-o /local/gen/shadeform
 	sudo chown -R $(shell id -u):$(shell id -g) gen/shadeform
 	gofmt -s -w gen/shadeform

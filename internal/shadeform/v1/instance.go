@@ -77,6 +77,11 @@ func (c *ShadeformClient) CreateInstance(ctx context.Context, attrs v1.CreateIns
 		tags = append(tags, createdTag)
 	}
 
+	base64Script, err := c.generateFirewallScript(attrs.FirewallRules)
+	if err != nil {
+		return nil, err
+	}
+
 	req := openapi.CreateRequest{
 		Cloud:             *cloudEnum,
 		Region:            region,
@@ -85,6 +90,12 @@ func (c *ShadeformClient) CreateInstance(ctx context.Context, attrs v1.CreateIns
 		ShadeCloud:        true,
 		Tags:              tags,
 		SshKeyId:          &sshKeyID,
+		LaunchConfiguration: &openapi.LaunchConfiguration{
+			Type: "script",
+			ScriptConfiguration: &openapi.ScriptConfiguration{
+				Base64Script: base64Script,
+			},
+		},
 	}
 
 	resp, httpResp, err := c.client.DefaultAPI.InstancesCreate(authCtx).CreateRequest(req).Execute()

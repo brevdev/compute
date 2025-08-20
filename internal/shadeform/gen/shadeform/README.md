@@ -23,7 +23,7 @@ go get golang.org/x/net/context
 Put the package under your project folder and add the following in import:
 
 ```go
-import openapi "github.com/shadeform/cloud-shadeform"
+import openapi "github.com/brevdev/cloud"
 ```
 
 To use a proxy, set the environment variable `HTTP_PROXY`:
