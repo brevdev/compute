@@ -15,7 +15,7 @@ const (
 	ufwForceEnable          = "ufw --force enable"
 )
 
-func (c *ShadeformClient) generateFirewallScript(firewallRules v1.FirewallRules) (string, error) {
+func (c *ShadeformClient) GenerateFirewallScript(firewallRules v1.FirewallRules) (string, error) {
 	commands := []string{ufwForceReset, ufwDefaultDropIncoming, ufwDefaultAllowOutgoing, ufwDefaultAllowPort22, ufwDefaultAllowPort2222}
 
 	for _, firewallRule := range firewallRules.IngressRules {
@@ -40,38 +40,50 @@ func (c *ShadeformClient) generateFirewallScript(firewallRules v1.FirewallRules)
 
 func (c *ShadeformClient) convertIngressFirewallRuleToUfwCommand(firewallRule v1.FirewallRule) []string {
 	cmds := []string{}
-	portSpec := ""
+	portSpecs := []string{}
 	if firewallRule.FromPort == firewallRule.ToPort {
-		portSpec = fmt.Sprintf("port %d", firewallRule.FromPort)
+		portSpecs = append(portSpecs, fmt.Sprintf("port %d", firewallRule.FromPort))
 	} else {
-		portSpec = fmt.Sprintf("port %d:%d", firewallRule.FromPort, firewallRule.ToPort)
+		// port ranges require two separate rules for tcp and udp
+		portSpecs = append(portSpecs, fmt.Sprintf("port %d:%d proto tcp", firewallRule.FromPort, firewallRule.ToPort))
+		portSpecs = append(portSpecs, fmt.Sprintf("port %d:%d proto udp", firewallRule.FromPort, firewallRule.ToPort))
 	}
 
 	if len(firewallRule.IPRanges) == 0 {
-		cmds = append(cmds, fmt.Sprintf("ufw allow in from any to any port %s", portSpec))
+		for _, portSpec := range portSpecs {
+			cmds = append(cmds, fmt.Sprintf("ufw allow in from any to any %s", portSpec))
+		}
 	}
 
 	for _, ipRange := range firewallRule.IPRanges {
-		cmds = append(cmds, fmt.Sprintf("ufw allow in from %s to any port %s", ipRange, portSpec))
+		for _, portSpec := range portSpecs {
+			cmds = append(cmds, fmt.Sprintf("ufw allow in from %s to any %s", ipRange, portSpec))
+		}
 	}
 	return cmds
 }
 
 func (c *ShadeformClient) convertEgressFirewallRuleToUfwCommand(firewallRule v1.FirewallRule) []string {
 	cmds := []string{}
-	portSpec := ""
+	portSpecs := []string{}
 	if firewallRule.FromPort == firewallRule.ToPort {
-		portSpec = fmt.Sprintf("port %d", firewallRule.FromPort)
+		portSpecs = append(portSpecs, fmt.Sprintf("port %d", firewallRule.FromPort))
 	} else {
-		portSpec = fmt.Sprintf("port %d:%d", firewallRule.FromPort, firewallRule.ToPort)
+		// port ranges require two separate rules for tcp and udp
+		portSpecs = append(portSpecs, fmt.Sprintf("port %d:%d proto tcp", firewallRule.FromPort, firewallRule.ToPort))
+		portSpecs = append(portSpecs, fmt.Sprintf("port %d:%d proto udp", firewallRule.FromPort, firewallRule.ToPort))
 	}
 
 	if len(firewallRule.IPRanges) == 0 {
-		cmds = append(cmds, fmt.Sprintf("ufw allow out to any port %s", portSpec))
+		for _, portSpec := range portSpecs {
+			cmds = append(cmds, fmt.Sprintf("ufw allow out to any %s", portSpec))
+		}
 	}
 
 	for _, ipRange := range firewallRule.IPRanges {
-		cmds = append(cmds, fmt.Sprintf("ufw allow out to %s port %s", ipRange, portSpec))
+		for _, portSpec := range portSpecs {
+			cmds = append(cmds, fmt.Sprintf("ufw allow out to %s %s", ipRange, portSpec))
+		}
 	}
 	return cmds
 }

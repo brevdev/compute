@@ -77,7 +77,7 @@ func (c *ShadeformClient) CreateInstance(ctx context.Context, attrs v1.CreateIns
 		tags = append(tags, createdTag)
 	}
 
-	base64Script, err := c.generateFirewallScript(attrs.FirewallRules)
+	base64Script, err := c.GenerateFirewallScript(attrs.FirewallRules)
 	if err != nil {
 		return nil, err
 	}

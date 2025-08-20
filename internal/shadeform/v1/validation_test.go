@@ -74,18 +74,30 @@ func TestInstanceTypeFilter(t *testing.T) {
 		FirewallRules: v1.FirewallRules{
 			EgressRules: []v1.FirewallRule{
 				{
-					ID:       "test-rule",
+					ID:       "test-rule1",
 					FromPort: 80,
 					ToPort:   8080,
-					IPRanges: []string{"127.0.0.1", "10.0.0.0/32"},
+					IPRanges: []string{"127.0.0.1", "10.0.0.0/24"},
+				},
+				{
+					ID:       "test-rule2",
+					FromPort: 5432,
+					ToPort:   5432,
+					IPRanges: []string{"127.0.0.1", "10.0.0.0/24"},
 				},
 			},
 			IngressRules: []v1.FirewallRule{
 				{
-					ID:       "test-rule",
+					ID:       "test-rule3",
+					FromPort: 80,
+					ToPort:   8080,
+					IPRanges: []string{"127.0.0.1", "10.0.0.0/24"},
+				},
+				{
+					ID:       "test-rule4",
 					FromPort: 5432,
 					ToPort:   5432,
-					IPRanges: []string{"127.0.0.1", "10.0.0.0/32"},
+					IPRanges: []string{"127.0.0.1", "10.0.0.0/24"},
 				},
 			},
 		},
