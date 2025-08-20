@@ -11,7 +11,7 @@ package openapi
 
 import (
 	"context"
-	openapiclient "github.com/shadeform/cloud-shadeform"
+	openapiclient "github.com/brevdev/cloud"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -111,11 +111,11 @@ func Test_openapi_DefaultAPIService(t *testing.T) {
 
 	})
 
-	t.Run("Test DefaultAPIService Sshkeys", func(t *testing.T) {
+	t.Run("Test DefaultAPIService SshKeys", func(t *testing.T) {
 
 		t.Skip("skip test") // remove to run test
 
-		resp, httpRes, err := apiClient.DefaultAPI.Sshkeys(context.Background()).Execute()
+		resp, httpRes, err := apiClient.DefaultAPI.SshKeys(context.Background()).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
@@ -123,11 +123,11 @@ func Test_openapi_DefaultAPIService(t *testing.T) {
 
 	})
 
-	t.Run("Test DefaultAPIService SshkeysAdd", func(t *testing.T) {
+	t.Run("Test DefaultAPIService SshKeysAdd", func(t *testing.T) {
 
 		t.Skip("skip test") // remove to run test
 
-		resp, httpRes, err := apiClient.DefaultAPI.SshkeysAdd(context.Background()).Execute()
+		resp, httpRes, err := apiClient.DefaultAPI.SshKeysAdd(context.Background()).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
@@ -135,26 +135,26 @@ func Test_openapi_DefaultAPIService(t *testing.T) {
 
 	})
 
-	t.Run("Test DefaultAPIService SshkeysDelete", func(t *testing.T) {
+	t.Run("Test DefaultAPIService SshKeysDelete", func(t *testing.T) {
 
 		t.Skip("skip test") // remove to run test
 
 		var id string
 
-		httpRes, err := apiClient.DefaultAPI.SshkeysDelete(context.Background(), id).Execute()
+		httpRes, err := apiClient.DefaultAPI.SshKeysDelete(context.Background(), id).Execute()
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
 
 	})
 
-	t.Run("Test DefaultAPIService SshkeysInfo", func(t *testing.T) {
+	t.Run("Test DefaultAPIService SshKeysInfo", func(t *testing.T) {
 
 		t.Skip("skip test") // remove to run test
 
 		var id string
 
-		resp, httpRes, err := apiClient.DefaultAPI.SshkeysInfo(context.Background(), id).Execute()
+		resp, httpRes, err := apiClient.DefaultAPI.SshKeysInfo(context.Background(), id).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
@@ -162,13 +162,13 @@ func Test_openapi_DefaultAPIService(t *testing.T) {
 
 	})
 
-	t.Run("Test DefaultAPIService SshkeysSetdefault", func(t *testing.T) {
+	t.Run("Test DefaultAPIService SshKeysSetDefault", func(t *testing.T) {
 
 		t.Skip("skip test") // remove to run test
 
 		var id string
 
-		httpRes, err := apiClient.DefaultAPI.SshkeysSetdefault(context.Background(), id).Execute()
+		httpRes, err := apiClient.DefaultAPI.SshKeysSetDefault(context.Background(), id).Execute()
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
