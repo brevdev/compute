@@ -101,10 +101,10 @@ func TestInstanceTypeFilter(t *testing.T) {
 		require.NoError(t, err, "ValidateSSHAccessible should pass")
 	})
 
-	//t.Run("ValidateTerminateInstance", func(t *testing.T) {
-	//	err := v1.ValidateTerminateInstance(ctx, client, instance)
-	//	require.NoError(t, err, "ValidateTerminateInstance should pass")
-	//})
+	t.Run("ValidateTerminateInstance", func(t *testing.T) {
+		err := v1.ValidateTerminateInstance(ctx, client, instance)
+		require.NoError(t, err, "ValidateTerminateInstance should pass")
+	})
 }
 
 func checkSkip(t *testing.T) {
